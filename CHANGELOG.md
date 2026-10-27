@@ -27,6 +27,8 @@ First public release.
 ### Mirror
 - Shows the built-in camera, mirrored, right below the notch to check how you look before
   a meeting. Opens with ⌃⌥M or the camera button; the camera is on only while it is open.
+- With the MacBook closed (or no built-in camera), offers to use the iPhone as the camera
+  through Continuity Camera.
 
 ### File shelf
 - Drag files to the notch to hold them, then drag them out to their destination, one at a

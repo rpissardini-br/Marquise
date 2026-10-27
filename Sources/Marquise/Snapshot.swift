@@ -23,6 +23,7 @@ import SwiftUI
                 m.prompter.showDemo(spokenThrough: 17, status: .listening)
             }),
             ("7c-espelho", { $0.mirror.start() }),
+            ("7d-espelho-iphone", { $0.mirror.showDemo(.offerIPhone, camera: "iPhone", lidClosed: true) }),
             ("8-soltar-arquivo", { $0.shelfDropMode = true; $0.dropTargeted = true }),
             ("9-prateleira", { m in
                 let base = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)

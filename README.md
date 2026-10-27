@@ -63,6 +63,9 @@ press <kbd>⌃</kbd><kbd>⌥</kbd><kbd>M</kbd> or click the camera button in the
 
 - Shows the Mac camera, mirrored, right below the notch, the same view people will get.
 - Uses the built-in camera, even when an iPhone or external camera is connected.
+- **MacBook closed?** If the Mac's camera isn't available (lid closed with an external
+  monitor, or a Mac without a camera), Marquise offers to use your iPhone as the camera
+  through Continuity Camera. Once you accept, it stops asking until you quit Marquise.
 - The camera turns on only while the mirror is open. Nothing is recorded or saved.
 - Close it with the ✕ button, the same shortcut or a click anywhere else.
 - If the teleprompter is open, it pauses underneath and comes back when the mirror closes.

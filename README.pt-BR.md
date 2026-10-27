@@ -65,6 +65,9 @@ hora: aperte <kbd>⌃</kbd><kbd>⌥</kbd><kbd>M</kbd> ou clique no botão da câ
 
 - Mostra a câmera do Mac, espelhada, logo abaixo do notch: o mesmo que as pessoas vão ver.
 - Usa a câmera embutida, mesmo com um iPhone ou uma câmera externa conectados.
+- **MacBook fechado?** Se a câmera do Mac não estiver disponível (tampa fechada com monitor
+  externo, ou Mac sem câmera), a Marquise pergunta se você quer usar o iPhone como câmera, pela
+  Câmera de Continuidade. Depois de aceitar, ela não pergunta de novo até você sair da Marquise.
 - A câmera só liga enquanto o espelho está aberto. Nada é gravado nem salvo.
 - Feche no botão ✕, no mesmo atalho ou clicando em qualquer outro lugar.
 - Se o teleprompter estiver aberto, ele pausa por baixo e volta quando o espelho fecha.

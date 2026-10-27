@@ -101,6 +101,7 @@ enum LKey: String {
     case voicePreparing, voiceDownloading, voiceMicDenied, voiceUnsupported, voiceFailed, voiceNeedsNewerMac
     case cameraMirror, closeMirror, cameraDenied, openCameraSettings, noCamera
     case islandScreen, screenMain, screenNotch
+    case lidClosedUseIPhone, noMacCameraUseIPhone, useIPhone, notNow, lidClosedNoCamera
 }
 
 private let translations: [AppLanguage: [LKey: String]] = [
@@ -140,6 +141,11 @@ private let translations: [AppLanguage: [LKey: String]] = [
         .cameraDenied: "A Marquise não tem acesso à câmera",
         .openCameraSettings: "Abrir Ajustes",
         .noCamera: "Nenhuma câmera encontrada",
+        .lidClosedUseIPhone: "O MacBook está fechado. Usar o iPhone como câmera?",
+        .noMacCameraUseIPhone: "A câmera do Mac não está disponível. Usar o iPhone como câmera?",
+        .useIPhone: "Usar o iPhone",
+        .notNow: "Agora não",
+        .lidClosedNoCamera: "O MacBook está fechado. Aproxime seu iPhone para usá-lo como câmera.",
         .islandScreen: "Mostrar a ilha em",
         .screenMain: "Tela principal (com a barra de menus)",
         .screenNotch: "Tela do MacBook (com o notch)",
@@ -203,6 +209,9 @@ private let translations: [AppLanguage: [LKey: String]] = [
         .cameraDenied: "A Marquise não tem acesso à câmara",
         .openCameraSettings: "Abrir Definições",
         .noCamera: "Nenhuma câmara encontrada",
+        .lidClosedUseIPhone: "O MacBook está fechado. Usar o iPhone como câmara?",
+        .noMacCameraUseIPhone: "A câmara do Mac não está disponível. Usar o iPhone como câmara?",
+        .lidClosedNoCamera: "O MacBook está fechado. Aproxime o iPhone para o usar como câmara.",
         .screenMain: "Ecrã principal (com a barra de menus)",
         .screenNotch: "Ecrã do MacBook (com o notch)",
         .hideCaption: "Ligado: quem assiste à reunião ou ao vídeo não vê a ilha nem esta janela. Uma coluna estreita e o texto logo abaixo da câmara mantêm o olhar natural.",
@@ -261,6 +270,11 @@ private let translations: [AppLanguage: [LKey: String]] = [
         .cameraDenied: "Marquise can't access the camera",
         .openCameraSettings: "Open Settings",
         .noCamera: "No camera found",
+        .lidClosedUseIPhone: "Your MacBook is closed. Use your iPhone as the camera?",
+        .noMacCameraUseIPhone: "The Mac's camera isn't available. Use your iPhone as the camera?",
+        .useIPhone: "Use iPhone",
+        .notNow: "Not Now",
+        .lidClosedNoCamera: "Your MacBook is closed. Bring your iPhone close to use it as the camera.",
         .islandScreen: "Show Island On",
         .screenMain: "Main Display (with the menu bar)",
         .screenNotch: "MacBook Display (with the notch)",
@@ -355,6 +369,11 @@ private let translations: [AppLanguage: [LKey: String]] = [
         .cameraDenied: "Marquise no tiene acceso a la cámara",
         .openCameraSettings: "Abrir Ajustes",
         .noCamera: "No se encontró ninguna cámara",
+        .lidClosedUseIPhone: "El MacBook está cerrado. ¿Usar el iPhone como cámara?",
+        .noMacCameraUseIPhone: "La cámara del Mac no está disponible. ¿Usar el iPhone como cámara?",
+        .useIPhone: "Usar el iPhone",
+        .notNow: "Ahora no",
+        .lidClosedNoCamera: "El MacBook está cerrado. Acerca tu iPhone para usarlo como cámara.",
         .islandScreen: "Mostrar la isla en",
         .screenMain: "Pantalla principal (con la barra de menús)",
         .screenNotch: "Pantalla del MacBook (con el notch)",
