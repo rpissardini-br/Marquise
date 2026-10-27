@@ -67,6 +67,10 @@ enum OpenTab: Equatable {
     @ObservationIgnored var showPrompterEditor: () -> Void = {}
     /// Abre o menu de opções (idioma etc.) onde está o cursor.
     @ObservationIgnored var showOptionsMenu: () -> Void = {}
+    /// As teclas de volume do teclado estão ligadas à Marquise (com a permissão de Acessibilidade).
+    var volumeKeysOn = false
+    /// Liga as teclas de volume (definido pelo AppDelegate).
+    @ObservationIgnored var enableVolumeKeys: () -> Void = {}
 
     init() {
         volume.onChange = { [weak self] value, muted in
@@ -102,7 +106,7 @@ enum OpenTab: Equatable {
     }
 
     var openSize: CGSize {
-        CGSize(width: max(geometry.notchSize.width + 300, 520), height: geometry.notchSize.height + 126)
+        CGSize(width: max(geometry.notchSize.width + 300, 520), height: geometry.notchSize.height + 160)
     }
 
     var prompterSize: CGSize {
@@ -155,5 +159,18 @@ enum OpenTab: Equatable {
         if mirror.isActive || prompter.isActive { return rect }
         if shelfDropMode { return rect.insetBy(dx: -24, dy: -24) }
         return rect.insetBy(dx: isOpen ? -14 : -4, dy: isOpen ? -14 : -4)
+    }
+}
+
+/// Em qual tela a ilha fica quando há mais de uma.
+enum IslandScreen: String, CaseIterable {
+    /// A tela com a barra de menus: com monitor externo como principal, a ilha vai para ele.
+    case main
+    /// A tela do MacBook, onde ficam o notch e a câmera.
+    case notch
+
+    static var current: IslandScreen {
+        get { UserDefaults.standard.string(forKey: "island.screen").flatMap(IslandScreen.init(rawValue:)) ?? .main }
+        set { UserDefaults.standard.set(newValue.rawValue, forKey: "island.screen") }
     }
 }

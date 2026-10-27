@@ -217,7 +217,103 @@ struct OpenContent: View {
             .padding(.top, 6)
 
             Spacer(minLength: 0)
+
+            VolumeRow(model: model)
+                .padding(.horizontal, 22)
+                .padding(.bottom, 12)
         }
+    }
+}
+
+// MARK: - Volume
+
+struct VolumeRow: View {
+    let model: IslandModel
+
+    var body: some View {
+        let volume = model.volume
+        let enabled = volume.backend != .none
+        HStack(spacing: 10) {
+            Button { volume.toggleMute() } label: {
+                Image(systemName: ClosedContent.speakerSymbol(volume.level, muted: volume.muted))
+                    .font(.system(size: 12, weight: .semibold))
+                    .contentTransition(.symbolEffect(.replace))
+                    .frame(width: 22, height: 22, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(PressableStyle())
+            .help(volume.muted ? L(.unmute) : L(.mute))
+            .disabled(!enabled)
+
+            VolumeSlider(value: volume.muted ? 0 : volume.level) { volume.set($0) }
+                .disabled(!enabled)
+
+            // O macOS não muda o volume desta saída: oferece ligar as teclas do teclado à Marquise.
+            if volume.controlsOutsideMacOS && !model.volumeKeysOn {
+                Button(action: model.enableVolumeKeys) {
+                    Image(systemName: "keyboard")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.yellow.opacity(0.9))
+                        .frame(width: 22, height: 22)
+                        .background(Circle().fill(.white.opacity(HoverState.shared.id == "volume-keys" ? 0.18 : 0.08)))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(PressableStyle())
+                .onHover { HoverState.shared.set("volume-keys", $0) }
+                .help(L(.useVolumeKeys))
+            }
+
+            if volume.permissionDenied && !enabled {
+                // Volume pelo Mac sem permissão: leva direto ao ajuste.
+                Button(L(.allowSystemAudio), action: Self.openSystemAudioSettings)
+                    .buttonStyle(.plain)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.yellow.opacity(0.9))
+                    .lineLimit(1)
+            } else {
+                Text(enabled || volume.deviceName.isEmpty ? volume.deviceName : L(.noVolumeControl, volume.deviceName))
+                    .font(.system(size: 11))
+                    .foregroundStyle(.white.opacity(0.45))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .frame(maxWidth: 170, alignment: .trailing)
+            }
+        }
+        .foregroundStyle(.white.opacity(enabled ? 0.85 : 0.35))
+        .frame(height: 22)
+    }
+
+    static func openSystemAudioSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AudioCapture") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+}
+
+struct VolumeSlider: View {
+    let value: Float
+    let onChange: (Float) -> Void
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        let hovering = HoverState.shared.id == "volume" && isEnabled
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(.white.opacity(0.15))
+                Capsule()
+                    .fill(.white.opacity(isEnabled ? 1 : 0.4))
+                    .frame(width: geo.size.width * CGFloat(min(max(value, 0), 1)))
+            }
+            .frame(height: hovering ? 8 : 5)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 0).onChanged { drag in
+                onChange(Float(drag.location.x / max(geo.size.width, 1)))
+            })
+        }
+        .frame(height: 22)
+        .onHover { HoverState.shared.set("volume", $0) }
+        .animation(.easeOut(duration: 0.12), value: hovering)
     }
 }
 

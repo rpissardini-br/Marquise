@@ -2,3 +2,4 @@ NSAppleEventsUsageDescription = "A Marquise usa isso para mostrar e controlar a 
 NSMicrophoneUsageDescription = "O teleprompter da Marquise escuta a sua voz para o texto acompanhar o que você fala. O áudio não sai do seu Mac.";
 NSSpeechRecognitionUsageDescription = "O teleprompter da Marquise transcreve a sua voz no próprio Mac para o texto acompanhar o que você fala.";
 NSCameraUsageDescription = "A Marquise usa a câmera só para o espelho, para você se ver antes de uma reunião. Nada é gravado.";
+NSAudioCaptureUsageDescription = "A Marquise ajusta o volume de monitores e TVs que o macOS não controla. O som é ajustado enquanto toca e nunca é gravado.";

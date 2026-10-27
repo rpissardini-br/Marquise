@@ -97,14 +97,36 @@ discos. Os itens saem da prateleira depois de soltos em algum lugar.
 
 - Capa do álbum e visualizador enquanto o **Música** ou o **Spotify** está tocando; abra a
   ilha para ver título, artista, progresso e controles.
-- Mudanças de volume aparecem no notch.
 - Quando nada está tocando: hora, data e a semana atual.
+
+### Volume, inclusive em monitores externos
+
+- Barra de volume com mudo na ilha aberta, mostrando qual saída está tocando.
+- Role com dois dedos (ou a roda do mouse) sobre o notch para mudar o volume e veja o nível
+  ali mesmo.
+- **Funciona com monitores e TVs.** O macOS não muda o volume do som que sai por
+  DisplayPort ou HDMI. A Marquise muda, de um de dois jeitos (menu → *Volume de monitores e TVs*):
+  - **Pelo Mac** (padrão, macOS 14.2 ou posterior): a Marquise abaixa o som antes de ele sair
+    do Mac. Funciona com qualquer monitor, TV ou caixa de som ligada ao monitor. Na primeira
+    vez, o macOS pede a permissão de *Gravação de áudio do sistema*. Em 100% a Marquise sai
+    do caminho e o som sai intocado.
+  - **Pelo monitor** (DDC): a Marquise muda o volume dos alto-falantes do próprio monitor pelo
+    cabo. Não pede permissão, mas só funciona em Macs com Apple silicon e em monitores cujos
+    alto-falantes obedecem a esse ajuste.
+- **Teclas de volume:** quando a saída é um monitor, aparece um botão de teclado ao lado da
+  barra de volume. Clique nele e as teclas de volume e mudo do teclado passam a controlar o
+  volume da Marquise, com o nível aparecendo no notch, em vez do aviso de "indisponível" do
+  macOS. Precisa da permissão de Acessibilidade. Também dá para ligar pelo menu.
 
 ### Opções
 
 Clique com o botão direito na ilha ou use a engrenagem:
 
 - **Idioma:** automático (segue o sistema) ou qualquer um dos cinco idiomas.
+- **Mostrar a ilha em:** tela principal (a da barra de menus, como um monitor externo) ou
+  a tela do MacBook, com o notch.
+- **Volume de monitores e TVs:** pelo Mac ou pelo monitor.
+- **Teclas de volume controlam o monitor.**
 - **Abrir ao iniciar sessão.**
 - Abrir o teleprompter ou o espelho, ou sair.
 
@@ -112,7 +134,9 @@ Clique com o botão direito na ilha ou use a engrenagem:
 
 - macOS 14 Sonoma ou posterior, em Mac com Apple silicon ou Intel.
 - Seguir a voz exige macOS 26 ou posterior.
-- Feita para Macs com notch. Em outras telas, a Marquise desenha uma ilha do mesmo tamanho
+- Volume do monitor: Mac com Apple silicon e monitor com DDC/CI (a maioria tem; às vezes
+  vem desligado no menu do próprio monitor).
+- Feita para Macs com notch. Em outras telas, como um monitor externo, a Marquise desenha uma ilha do mesmo tamanho
   no alto da barra de menus.
 
 ## Instalação
@@ -140,6 +164,8 @@ nenhuma delas; só o recurso correspondente fica desligado.
 | Microfone | Seguir a voz no teleprompter |
 | Reconhecimento de Fala | Transformar a voz em texto, no próprio Mac |
 | Automação (Música, Spotify) | Mostrar e controlar o que está tocando |
+| Gravação de áudio do sistema | Volume de monitores e TVs pelo Mac; só é pedida na primeira vez que você muda o volume |
+| Acessibilidade (opcional) | Teclas de volume controlando o monitor; só é pedida quando você liga |
 
 Dá para mudar depois em **Ajustes do Sistema → Privacidade e Segurança**.
 
@@ -156,6 +182,11 @@ Dá para mudar depois em **Ajustes do Sistema → Privacidade e Segurança**.
   teleprompter, o idioma escolhido e os caminhos dos arquivos da prateleira. Ficam sem
   criptografia, como a maioria das preferências de apps. Para apagar:
   `defaults delete com.marquise.app`.
+- **Áudio do sistema:** no volume de monitores e TVs pelo Mac, o som dos seus apps passa
+  pela Marquise no caminho para a saída, é abaixado e tocado na hora. Nunca é gravado, salvo
+  nem enviado, e isso só acontece enquanto o volume está abaixo de 100%.
+- **Teclado:** com as teclas de volume ligadas, a Marquise só olha as teclas de volume e
+  mudo. Todas as outras passam direto, e nada é gravado.
 - **Registros (logs)** têm só estados (por exemplo "ouvindo" ou "2 arquivos recebidos"),
   nunca o que você fala nem nomes de arquivos.
 
@@ -172,6 +203,16 @@ Dá para mudar depois em **Ajustes do Sistema → Privacidade e Segurança**.
   outro caminho, ele some da prateleira.
 - Com "seguir a voz" ligado, o microfone continua ativo enquanto o teleprompter está pausado.
 - O indicador de volume padrão do macOS ainda aparece junto com o da Marquise.
+- O volume de monitores pelo Mac acrescenta um atraso mínimo ao som (centésimos de segundo).
+  Enquanto ele está abaixo de 100%, o som de todos os apps vai para o monitor, mesmo de um
+  app configurado para tocar em outra saída.
+- O volume pelo monitor (DDC) e a consulta da permissão usam partes do macOS que a Apple não
+  documenta (as mesmas de apps como o MonitorControl). Uma atualização do macOS pode
+  quebrá-las até a Marquise ser atualizada.
+- Com mais de um monitor externo, a Marquise controla o primeiro que responder.
+- Volume mudado pelos botões do próprio monitor aparece na próxima vez que a ilha abrir.
+- O teleprompter e o espelho acompanham a ilha. Se você usa a câmera do MacBook com um
+  monitor externo, escolha *Tela do MacBook* para o texto ficar logo abaixo da câmera.
 
 ## Compilar a partir do código
 

@@ -28,6 +28,14 @@ First public release.
 - Shows the built-in camera, mirrored, right below the notch to check how you look before
   a meeting. Opens with ⌃⌥M or the camera button; the camera is on only while it is open.
 
+### Volume
+- Volume bar with mute in the open island, and scrolling over the notch to change it.
+- Volume for monitors and TVs on DisplayPort or HDMI, which macOS can't control: on the Mac
+  (default, macOS 14.2+, System Audio Recording permission) or on the monitor over DDC
+  (Apple silicon).
+- Optional: volume and mute keys control that volume (needs Accessibility permission), with
+  a shortcut button next to the volume bar.
+
 ### File shelf
 - Drag files to the notch to hold them, then drag them out to their destination, one at a
   time or all at once.
@@ -35,6 +43,7 @@ First public release.
 ### General
 - Interface in English (US, UK), Portuguese (Brazil, Portugal) and Spanish, following the
   system language or chosen in the menu.
+- Choose the island's display: the main display (with the menu bar) or the MacBook display.
 - Open at login.
 - Hardened runtime with only the camera, microphone and Apple Events entitlements.
 - Universal app for Apple silicon and Intel, macOS 14 or later.

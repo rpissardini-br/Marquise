@@ -88,6 +88,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panel: IslandPanel!
     private var editorWindow: NSWindow?
     private var hotKeys: HotKeys?
+    private var volumeKeys: VolumeKeys?
     private var monitors: [Any] = []
     private var openWork: DispatchWorkItem?
     private var closeWork: DispatchWorkItem?
@@ -134,6 +135,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self, selector: #selector(screensChanged),
             name: NSApplication.didChangeScreenParametersNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(
+            self, selector: #selector(didWake),
+            name: NSWorkspace.didWakeNotification, object: nil)
+        NSWorkspace.shared.notificationCenter.addObserver(
             self, selector: #selector(spaceChanged),
             name: NSWorkspace.activeSpaceDidChangeNotification, object: nil)
 
@@ -154,6 +158,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let m = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel, handler: { [weak self] e in
             self?.scrolled(e) ?? e
         }) { monitors.append(m) }
+        // Com a ilha fechada a janela não recebe eventos: a rolagem sobre o notch chega por aqui.
+        if let m = NSEvent.addGlobalMonitorForEvents(matching: .scrollWheel, handler: { [weak self] e in
+            self?.scrolledOverClosedIsland(e)
+        }) { monitors.append(m) }
 
         model.showPrompterEditor = { [weak self] in self?.showEditor() }
         model.showOptionsMenu = { [weak self] in self?.showMenu() }
@@ -168,6 +176,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         registerHotKeys()
 
         model.volume.start()
+        volumeKeys = VolumeKeys(volume: model.volume)
+        volumeKeys?.onActiveChange = { [weak self] active in self?.model.volumeKeysOn = active }
+        model.enableVolumeKeys = { [weak self] in
+            VolumeKeys.enabled = true
+            self?.volumeKeys?.start(askingPermission: true)
+        }
+        if VolumeKeys.enabled { volumeKeys?.start(askingPermission: false) }
         model.media.start()
 
         if pinnedOpen { open() }
@@ -176,7 +191,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Posicionamento
 
     private func targetScreen() -> NSScreen? {
-        NSScreen.screens.first(where: { $0.safeAreaInsets.top > 0 }) ?? NSScreen.screens.first
+        // A primeira tela da lista é a principal (a da barra de menus), não a da janela ativa.
+        let main = NSScreen.screens.first
+        switch IslandScreen.current {
+        case .main: return main
+        case .notch: return NSScreen.screens.first(where: { $0.safeAreaInsets.top > 0 }) ?? main
+        }
     }
 
     private func layoutPanel() {
@@ -193,6 +213,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func screensChanged() {
         layoutPanel()
         panel.orderFrontRegardless()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        model.volume.shutdown()
+    }
+
+    @objc private func didWake() {
+        model.volume.restartSoftware()
     }
 
     @objc private func spaceChanged() {
@@ -258,11 +286,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func scrolled(_ event: NSEvent) -> NSEvent? {
-        guard prompter.isActive, !model.mirror.isActive, event.window === panel || model.hitRect.contains(NSEvent.mouseLocation)
+        guard !model.mirror.isActive else { return event }
+        if prompter.isActive {
+            guard event.window === panel || model.hitRect.contains(NSEvent.mouseLocation) else { return event }
+            let delta = event.hasPreciseScrollingDeltas ? event.scrollingDeltaY : event.scrollingDeltaY * 10
+            prompter.nudge(by: -delta)
+            return nil
+        }
+        // Sobre a ilha, rolar muda o volume (menos na prateleira, que rola de lado).
+        guard model.hitRect.contains(NSEvent.mouseLocation), !model.shelfDropMode,
+              !model.isOpen || model.tab == .home
         else { return event }
-        let delta = event.hasPreciseScrollingDeltas ? event.scrollingDeltaY : event.scrollingDeltaY * 10
-        prompter.nudge(by: -delta)
+        adjustVolume(with: event)
         return nil
+    }
+
+    private func scrolledOverClosedIsland(_ event: NSEvent) {
+        guard !model.isExpanded, model.hitRect.contains(NSEvent.mouseLocation) else { return }
+        adjustVolume(with: event)
+    }
+
+    /// Dedos (ou roda do mouse) para cima aumentam, qualquer que seja o ajuste de rolagem natural.
+    private func adjustVolume(with event: NSEvent) {
+        guard event.momentumPhase.isEmpty else { return }
+        var delta = Float(event.scrollingDeltaY)
+        if event.isDirectionInvertedFromDevice { delta = -delta }
+        if event.hasPreciseScrollingDeltas {
+            model.volume.step(by: delta * 0.005)
+        } else if delta != 0 {
+            model.volume.step(by: delta > 0 ? 1 / 16 : -1 / 16)
+        }
     }
 
     private func open() {
@@ -272,6 +325,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
         model.shelf.prune()
         model.media.refreshAll()
+        model.volume.refresh()
         startTracking()
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in self?.model.media.refreshAll() }
     }
@@ -547,6 +601,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         languageItem.submenu = languageMenu
         menu.addItem(languageItem)
 
+        let screenMenu = NSMenu()
+        for (choice, title) in [(IslandScreen.main, L(.screenMain)), (.notch, L(.screenNotch))] {
+            let item = NSMenuItem(title: title, action: #selector(chooseScreen(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = choice.rawValue
+            item.state = IslandScreen.current == choice ? .on : .off
+            screenMenu.addItem(item)
+        }
+        let screenItem = NSMenuItem(title: L(.islandScreen), action: nil, keyEquivalent: "")
+        screenItem.submenu = screenMenu
+        menu.addItem(screenItem)
+
+        let methodMenu = NSMenu()
+        for (choice, title) in [(VolumeMethod.mac, L(.methodMac)), (.monitor, L(.methodMonitor))] {
+            let item = NSMenuItem(title: title, action: #selector(chooseVolumeMethod(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = choice.rawValue
+            item.state = VolumeMethod.current == choice ? .on : .off
+            methodMenu.addItem(item)
+        }
+        let methodItem = NSMenuItem(title: L(.volumeMethod), action: nil, keyEquivalent: "")
+        methodItem.submenu = methodMenu
+        menu.addItem(methodItem)
+
+        let keysItem = NSMenuItem(title: L(.volumeKeys), action: #selector(toggleVolumeKeys), keyEquivalent: "")
+        keysItem.target = self
+        // Ligado, mas ainda sem a permissão de Acessibilidade: estado intermediário.
+        keysItem.state = !VolumeKeys.enabled ? .off : (volumeKeys?.isTrusted == true ? .on : .mixed)
+        keysItem.toolTip = L(.volumeKeysHelp)
+        menu.addItem(keysItem)
+
         let login = NSMenuItem(title: L(.openAtLogin), action: #selector(toggleLoginItem), keyEquivalent: "")
         login.target = self
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
@@ -562,6 +647,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func chooseLanguage(_ item: NSMenuItem) {
         Localization.shared.choice = (item.representedObject as? String).flatMap(AppLanguage.init(rawValue:))
+    }
+
+    @objc private func chooseScreen(_ item: NSMenuItem) {
+        guard let choice = (item.representedObject as? String).flatMap(IslandScreen.init(rawValue:)) else { return }
+        IslandScreen.current = choice
+        layoutPanel()
+        panel.orderFrontRegardless()
+    }
+
+    @objc private func chooseVolumeMethod(_ item: NSMenuItem) {
+        guard let choice = (item.representedObject as? String).flatMap(VolumeMethod.init(rawValue:)) else { return }
+        VolumeMethod.current = choice
+        model.volume.methodChanged()
+    }
+
+    @objc private func toggleVolumeKeys() {
+        VolumeKeys.enabled.toggle()
+        if VolumeKeys.enabled {
+            volumeKeys?.start(askingPermission: true)
+        } else {
+            volumeKeys?.stop()
+        }
     }
 
     @objc private func mirrorMenuItem() {
