@@ -179,7 +179,7 @@ Dá para mudar depois em **Ajustes do Sistema → Privacidade e Segurança**.
 (Swift 6).
 
 ```bash
-git clone https://github.com/<voce>/marquise.git
+git clone https://github.com/rpissardini-br/marquise.git
 ```
 
 ```bash

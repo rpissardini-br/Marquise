@@ -175,7 +175,7 @@ You can change them later in **System Settings → Privacy & Security**.
 You need the Command Line Tools or Xcode with the **macOS 26 SDK** or later (Swift 6).
 
 ```bash
-git clone https://github.com/<you>/marquise.git
+git clone https://github.com/rpissardini-br/marquise.git
 ```
 
 ```bash
