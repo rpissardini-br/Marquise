@@ -1,0 +1,4 @@
+NSAppleEventsUsageDescription = "Marquise uses this to show and control what's playing in Music and Spotify.";
+NSMicrophoneUsageDescription = "The Marquise teleprompter listens to your voice so the text follows what you say. Audio never leaves your Mac.";
+NSSpeechRecognitionUsageDescription = "The Marquise teleprompter transcribes your voice on your Mac so the text follows what you say.";
+NSCameraUsageDescription = "Marquise uses the camera only for the mirror, so you can check how you look before a meeting. Nothing is recorded.";

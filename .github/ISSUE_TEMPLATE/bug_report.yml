@@ -1,0 +1,67 @@
+name: Bug report
+description: Something in Marquise doesn't work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! For security problems, follow SECURITY.md instead of opening an issue.
+        Português e español também são bem-vindos.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the teleprompter with ⌃⌥T
+        2. …
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Teleprompter
+        - Voice following
+        - Hiding from screen capture
+        - Mirror
+        - File shelf
+        - Music / Spotify
+        - Volume
+        - Clock / calendar
+        - Language / translations
+        - Install / launch
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Marquise version
+      placeholder: "1.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac model
+      placeholder: macOS 26.1, MacBook Air M4
+    validations:
+      required: true
+  - type: input
+    id: language
+    attributes:
+      label: Marquise language and voice language (if relevant)
+      placeholder: English (UK), voice in Portuguese (Brazil)
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else
+      description: Please remove anything private (script text, file names) before posting.

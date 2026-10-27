@@ -1,0 +1,27 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+# App and installers (published in GitHub Releases, not in the repository)
+build/
+dist/
+
+# Local screenshots from `Marquise --snapshot` (the README ones live in docs/images)
+previews/
+
+# Xcode, if the package is opened there
+*.xcodeproj/
+xcuserdata/
+DerivedData/
+
+# Signing and notarization material: never commit these
+*.p12
+*.cer
+*.certSigningRequest
+*.provisionprofile
+.env
+
+# macOS
+.DS_Store
+._*
