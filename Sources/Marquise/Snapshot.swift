@@ -52,7 +52,6 @@ import SwiftUI
             Localization.shared.choice = name.hasPrefix("idioma-") ? Localization.shared.choice : mainLanguage
             let model = IslandModel()
             model.geometry = notch
-            model.volume.showDemo(name: "External Monitor", level: 0.5)
             setup(model)
             let view = ZStack(alignment: .top) {
                 LinearGradient(colors: [Color(red: 0.25, green: 0.35, blue: 0.6), Color(red: 0.6, green: 0.4, blue: 0.55)],

@@ -67,10 +67,6 @@ enum OpenTab: Equatable {
     @ObservationIgnored var showPrompterEditor: () -> Void = {}
     /// Abre o menu de opções (idioma etc.) onde está o cursor.
     @ObservationIgnored var showOptionsMenu: () -> Void = {}
-    /// As teclas de volume do teclado estão ligadas à Marquise (com a permissão de Acessibilidade).
-    var volumeKeysOn = false
-    /// Liga as teclas de volume (definido pelo AppDelegate).
-    @ObservationIgnored var enableVolumeKeys: () -> Void = {}
 
     init() {
         volume.onChange = { [weak self] value, muted in
@@ -106,7 +102,7 @@ enum OpenTab: Equatable {
     }
 
     var openSize: CGSize {
-        CGSize(width: max(geometry.notchSize.width + 300, 520), height: geometry.notchSize.height + 160)
+        CGSize(width: max(geometry.notchSize.width + 300, 520), height: geometry.notchSize.height + 126)
     }
 
     var prompterSize: CGSize {

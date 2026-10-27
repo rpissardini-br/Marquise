@@ -2,4 +2,3 @@ NSAppleEventsUsageDescription = "Marquise lo usa para mostrar y controlar lo que
 NSMicrophoneUsageDescription = "El teleprompter de Marquise escucha tu voz para que el texto siga lo que dices. El audio no sale de tu Mac.";
 NSSpeechRecognitionUsageDescription = "El teleprompter de Marquise transcribe tu voz en el propio Mac para que el texto siga lo que dices.";
 NSCameraUsageDescription = "Marquise usa la cámara solo para el espejo, para que te veas antes de una reunión. No se graba nada.";
-NSAudioCaptureUsageDescription = "Marquise ajusta el volumen de monitores y televisores que macOS no controla. El sonido se ajusta mientras suena y nunca se graba.";

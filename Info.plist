@@ -34,8 +34,6 @@
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Marquise uses this to show and control what's playing in Music and Spotify.</string>
-	<key>NSAudioCaptureUsageDescription</key>
-	<string>Marquise adjusts the volume of monitors and TVs that macOS can't control. Sound is adjusted as it plays and never recorded.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Marquise uses the camera only for the mirror, so you can check how you look before a meeting. Nothing is recorded.</string>
 	<key>NSHighResolutionCapable</key>

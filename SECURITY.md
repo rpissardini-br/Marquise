@@ -27,17 +27,6 @@ a vulnerability:
   Apple; macOS refuses to open a copy that was changed after release.
 - **Hardened runtime** with only three entitlements: camera (the mirror), microphone
   input (voice following) and Apple Events (controlling Music and Spotify).
-- **Optional keyboard access.** Only if you turn on the volume keys for the monitor,
-  Marquise asks for Accessibility permission and watches the volume and mute keys only.
-  Every other key passes through untouched and nothing is recorded.
-- **System audio, only to change volume.** For monitors and TVs, Marquise can lower the
-  volume on the Mac with a Core Audio process tap. It needs the System Audio Recording
-  permission, asked the first time you change that volume. The sound is scaled and played
-  immediately, never recorded, saved or sent, and only while the volume is below 100%. If
-  Marquise quits or crashes, macOS plays the sound directly again.
-- **Monitor control.** Volume over the display cable (DDC) and the check of the System Audio
-  Recording permission use undocumented macOS interfaces. Over DDC, Marquise only reads and
-  writes the speaker volume.
 - **Minimal network use.** The only connection Marquise makes is downloading Spotify album
   art: HTTPS only, only from Spotify's image hosts (`scdn.co`, `spotifycdn.com`) and with a
   size limit.

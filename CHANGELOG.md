@@ -28,14 +28,6 @@ First public release.
 - Shows the built-in camera, mirrored, right below the notch to check how you look before
   a meeting. Opens with ⌃⌥M or the camera button; the camera is on only while it is open.
 
-### Volume
-- Volume bar with mute in the open island, and scrolling over the notch to change it.
-- Volume for monitors and TVs on DisplayPort or HDMI, which macOS can't control: on the Mac
-  (default, macOS 14.2+, System Audio Recording permission) or on the monitor over DDC
-  (Apple silicon).
-- Optional: volume and mute keys control that volume (needs Accessibility permission), with
-  a shortcut button next to the volume bar.
-
 ### File shelf
 - Drag files to the notch to hold them, then drag them out to their destination, one at a
   time or all at once.

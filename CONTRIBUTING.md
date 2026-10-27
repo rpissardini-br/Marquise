@@ -21,7 +21,7 @@ hardened runtime.
 
 ### Local signing certificate (recommended)
 
-macOS ties permissions (camera, microphone, speech, automation, system audio, accessibility) to the app's signature. With ad hoc
+macOS ties permissions (camera, microphone, speech, automation) to the app's signature. With ad hoc
 signing every build looks like a new app and macOS asks again. A self-signed certificate
 keeps the same identity across builds:
 
@@ -62,10 +62,7 @@ each language are also generated. The README images in `docs/images` come from t
 | `Sources/Marquise/Mirror.swift` | Camera mirror |
 | `Sources/Marquise/Shelf.swift` | File shelf and dragging files out |
 | `Sources/Marquise/MediaController.swift` | Music and Spotify state and controls |
-| `Sources/Marquise/VolumeMonitor.swift` | Volume of the current output: macOS or the monitor |
-| `Sources/Marquise/SoftwareVolume.swift` | Volume on the Mac for monitors and TVs (Core Audio process tap) |
-| `Sources/Marquise/DDC.swift` | Talking to external monitors over the cable (DDC/CI) |
-| `Sources/Marquise/VolumeKeys.swift` | Optional volume keys for the monitor |
+| `Sources/Marquise/VolumeMonitor.swift` | System volume changes |
 | `Sources/Marquise/HotKeys.swift` | Global shortcuts |
 | `Sources/Marquise/Localization.swift` | Languages and all interface text |
 | `Sources/Marquise/Snapshot.swift` | `--snapshot` mode |

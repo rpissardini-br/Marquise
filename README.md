@@ -95,26 +95,8 @@ Items leave the shelf once they have been dropped somewhere.
 
 - Album art and a live visualizer while **Music** or **Spotify** is playing; open the
   island for the title, artist, progress and playback controls.
+- Volume changes appear in the notch.
 - When nothing is playing: time, date and the current week.
-
-### Volume, including external monitors
-
-- A volume bar with mute in the open island, showing which output is playing.
-- Scroll over the notch with two fingers (or the mouse wheel) to change the volume, and
-  see the level right there.
-- **Monitors and TVs work too.** macOS can't change the volume of sound going out over
-  DisplayPort or HDMI. Marquise can, in one of two ways (menu → *Volume for Monitors and TVs*):
-  - **On the Mac** (default, macOS 14.2 or later): Marquise lowers the sound before it leaves
-    the Mac. It works with any monitor, TV or speakers plugged into the monitor. The first
-    time, macOS asks for the *System Audio Recording* permission. At 100% Marquise steps
-    aside and the sound goes out untouched.
-  - **On the monitor** (DDC): Marquise changes the monitor's own speaker volume through the
-    cable. No permission needed, but only on Macs with Apple silicon and monitors whose
-    speakers follow that setting.
-- **Volume keys:** when the output is a monitor, a keyboard button appears next to the
-  volume bar. Click it and the keyboard's volume and mute keys control Marquise's volume,
-  with the level shown in the notch, instead of macOS's "unavailable" sign. This needs the
-  Accessibility permission. You can also turn it on in the menu.
 
 ### Options
 
@@ -123,8 +105,6 @@ Right-click the island or use the gear button:
 - **Language:** automatic (follows the system) or any of the five languages.
 - **Show island on:** the main display (the one with the menu bar, such as an external
   monitor) or the MacBook display with the notch.
-- **Volume for monitors and TVs:** on the Mac or on the monitor.
-- **Volume keys control the monitor.**
 - **Open at login.**
 - Open the teleprompter or the mirror, or quit.
 
@@ -134,8 +114,6 @@ Right-click the island or use the gear button:
 - Voice following needs macOS 26 or later.
 - Designed for Macs with a notch. On other screens, such as an external monitor, Marquise
   draws an island of the same size at the top of the menu bar.
-- Monitor volume needs a Mac with Apple silicon and a monitor with DDC/CI (most have it,
-  sometimes turned off in the monitor's own menu).
 
 ## Install
 
@@ -162,8 +140,6 @@ only the related feature is disabled.
 | Microphone | Voice following in the teleprompter |
 | Speech Recognition | Turning your voice into text, on the Mac |
 | Automation (Music, Spotify) | Showing and controlling what is playing |
-| System Audio Recording | Volume for monitors and TVs, on the Mac; only asked the first time you change it |
-| Accessibility (optional) | Volume keys controlling the monitor; only asked when you turn it on |
 
 You can change them later in **System Settings → Privacy & Security**.
 
@@ -179,11 +155,6 @@ You can change them later in **System Settings → Privacy & Security**.
 - **Stored on your Mac** (in Marquise's preferences): your script, teleprompter settings,
   language choice and the paths of the files on the shelf. They are stored unencrypted, like
   most app preferences. Remove them with `defaults delete com.marquise.app`.
-- **System audio:** for monitor and TV volume on the Mac, the sound of your apps passes
-  through Marquise on its way out, is turned down and played right away. It is never
-  recorded, saved or sent anywhere, and it only happens while the volume is below 100%.
-- **Keyboard:** with the optional volume keys on, Marquise only looks at the volume and mute
-  keys. Every other key passes through untouched and nothing is recorded.
 - **Logs** contain states only (for example "listening" or "2 files received"), never what
   you say or file names.
 
@@ -200,14 +171,6 @@ You can change them later in **System Settings → Privacy & Security**.
   disappears from the shelf.
 - With voice following on, the microphone stays active while the teleprompter is paused.
 - The standard macOS volume indicator still appears alongside Marquise's.
-- Monitor volume on the Mac adds a tiny delay to the sound (a few hundredths of a second).
-  While it is below 100%, the sound of every app goes to the monitor, even an app set to play
-  on another output.
-- Monitor volume on the monitor (DDC) and the permission check use parts of macOS that Apple
-  doesn't document (the same ones used by apps like MonitorControl). A macOS update could
-  break them until Marquise is updated.
-- With more than one external monitor, Marquise controls the first one that answers.
-- Volume changed with the monitor's own buttons shows up the next time the island opens.
 - The teleprompter and the mirror follow the island. If you use the MacBook camera with an
   external monitor, choose *MacBook Display* so the text stays right below the camera.
 
