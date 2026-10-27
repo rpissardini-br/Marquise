@@ -33,8 +33,9 @@ func islandPath(in r: CGRect, flare f: CGFloat, bottomRadius b: CGFloat) -> NSBe
     return p
 }
 
-/// `dark`: versão para o modo escuro no padrão do macOS 27: fundo quase preto e o desenho
-/// colorido (a ilha ganha o degradê da marca).
+/// O ícone é uma tela de Mac: moldura preta, a tela com o degradê da marca e a ilha descendo da
+/// moldura como o notch de verdade. `dark`: versão do modo escuro (padrão do macOS 27), com a
+/// tela mais profunda para combinar com os ícones escuros do sistema.
 func drawIcon(dark: Bool = false) -> NSBitmapImageRep {
     let rep = NSBitmapImageRep(
         bitmapDataPlanes: nil, pixelsWide: Int(canvas), pixelsHigh: Int(canvas), bitsPerSample: 8,
@@ -46,6 +47,7 @@ func drawIcon(dark: Bool = false) -> NSBitmapImageRep {
     // Corpo no grid de ícones do macOS: 824 px com margem de 100 px.
     let body = CGRect(x: 100, y: 100, width: 824, height: 824)
     let shape = NSBezierPath(roundedRect: body, xRadius: 186, yRadius: 186)
+    let bezel: UInt32 = 0x08080A
 
     // Sombra do ícone sobre a mesa.
     NSGraphicsContext.saveGraphicsState()
@@ -54,79 +56,67 @@ func drawIcon(dark: Bool = false) -> NSBitmapImageRep {
     drop.shadowBlurRadius = 28
     drop.shadowOffset = NSSize(width: 0, height: -12)
     drop.set()
-    color(dark ? 0x101012 : 0x3A3F9E).setFill()
+    color(bezel).setFill()
     shape.fill()
     NSGraphicsContext.restoreGraphicsState()
 
+    // Moldura: vidro preto, um pouco mais claro no alto.
     NSGraphicsContext.saveGraphicsState()
     shape.addClip()
+    NSGradient(colors: [color(0x232326), color(bezel)])!.draw(in: body, angle: -90)
 
-    // Fundo: o mesmo degradê azul-violeta das telas da Marquise (no escuro, quase grafite).
-    if dark {
-        NSGradient(colors: [color(0x2C2C30), color(0x141416), color(0x0A0A0B)],
-                   atLocations: [0, 0.6, 1], colorSpace: .sRGB)!
-            .draw(in: body, angle: -90)
-    } else {
-        NSGradient(colors: [color(0x4757D8), color(0x7A4FC4), color(0xD0548F)],
-                   atLocations: [0, 0.55, 1], colorSpace: .sRGB)!
-            .draw(in: body, angle: -60)
-    }
-    // Brilho suave vindo de cima.
-    NSGradient(colors: [NSColor.white.withAlphaComponent(dark ? 0.08 : 0.22), NSColor.white.withAlphaComponent(0)])!
-        .draw(in: CGRect(x: body.minX, y: body.midY, width: body.width, height: body.height / 2), angle: -90)
+    // A tela, dentro da moldura.
+    let screen = body.insetBy(dx: 54, dy: 54)
+    let screenShape = NSBezierPath(roundedRect: screen, xRadius: 134, yRadius: 134)
+    NSGraphicsContext.saveGraphicsState()
+    screenShape.addClip()
+    let colors = dark ? [color(0x34409E), color(0x55358F), color(0x8E3463)]
+                      : [color(0x4F60E0), color(0x8352CC), color(0xD8589A)]
+    NSGradient(colors: colors, atLocations: [0, 0.55, 1], colorSpace: .sRGB)!.draw(in: screen, angle: -60)
+    // Reflexo de vidro na metade de cima da tela.
+    NSGradient(colors: [NSColor.white.withAlphaComponent(dark ? 0.10 : 0.20), NSColor.white.withAlphaComponent(0)])!
+        .draw(in: CGRect(x: screen.minX, y: screen.midY, width: screen.width, height: screen.height / 2), angle: -90)
 
-    // A ilha, presa à borda de cima.
-    let island = CGRect(x: canvas / 2 - 226, y: body.maxY - 410, width: 452, height: 410)
-    let islandShape = islandPath(in: island, flare: 34, bottomRadius: 150)
+    // A ilha desce da moldura, da mesma cor, como o notch.
+    let island = CGRect(x: canvas / 2 - 196, y: screen.maxY - 350, width: 392, height: 350)
+    let islandShape = islandPath(in: island, flare: 30, bottomRadius: 130)
     NSGraphicsContext.saveGraphicsState()
     let glow = NSShadow()
-    // No escuro, a sombra vira um brilho violeta suave, como nos ícones do sistema.
-    glow.shadowColor = dark ? color(0x7A4FC4, 0.45) : NSColor.black.withAlphaComponent(0.45)
-    glow.shadowBlurRadius = dark ? 60 : 40
-    glow.shadowOffset = NSSize(width: 0, height: dark ? -10 : -18)
+    glow.shadowColor = NSColor.black.withAlphaComponent(dark ? 0.55 : 0.40)
+    glow.shadowBlurRadius = 36
+    glow.shadowOffset = NSSize(width: 0, height: -14)
     glow.set()
-    color(0x050507).setFill()
+    color(bezel).setFill()
     islandShape.fill()
     NSGraphicsContext.restoreGraphicsState()
-    if dark {
-        NSGraphicsContext.saveGraphicsState()
-        islandShape.addClip()
-        NSGradient(colors: [color(0x5B6CF0), color(0x8B5CF6), color(0xE0559A)],
-                   atLocations: [0, 0.5, 1], colorSpace: .sRGB)!
-            .draw(in: island, angle: -70)
-        // Reflexo de vidro no alto da ilha.
-        NSGradient(colors: [NSColor.white.withAlphaComponent(0.22), NSColor.white.withAlphaComponent(0)])!
-            .draw(in: CGRect(x: island.minX, y: island.midY, width: island.width, height: island.height / 2), angle: -90)
-        NSGraphicsContext.restoreGraphicsState()
-    }
+    NSGraphicsContext.restoreGraphicsState()
 
-    // Câmera no topo da ilha.
-    let lensCenter = CGPoint(x: canvas / 2, y: body.maxY - 58)
+    // Câmera no notch, logo abaixo da moldura.
+    let lensCenter = CGPoint(x: canvas / 2, y: screen.maxY - 38)
     color(0x1D1E26).setFill()
-    NSBezierPath(ovalIn: CGRect(x: lensCenter.x - 19, y: lensCenter.y - 19, width: 38, height: 38)).fill()
+    NSBezierPath(ovalIn: CGRect(x: lensCenter.x - 17, y: lensCenter.y - 17, width: 34, height: 34)).fill()
     color(0x3B4A78).setFill()
-    NSBezierPath(ovalIn: CGRect(x: lensCenter.x - 9, y: lensCenter.y - 9, width: 18, height: 18)).fill()
+    NSBezierPath(ovalIn: CGRect(x: lensCenter.x - 8, y: lensCenter.y - 8, width: 16, height: 16)).fill()
     // Luz verde: a câmera do espelho.
     color(0x34D399).setFill()
-    NSBezierPath(ovalIn: CGRect(x: lensCenter.x + 36, y: lensCenter.y - 7, width: 14, height: 14)).fill()
+    NSBezierPath(ovalIn: CGRect(x: lensCenter.x + 32, y: lensCenter.y - 6, width: 12, height: 12)).fill()
 
     // Linhas do teleprompter: a atual em destaque, as seguintes se apagando.
-    let lines: [(width: CGFloat, alpha: CGFloat)] = dark ? [(318, 1), (258, 0.6), (176, 0.38)]
-                                                          : [(318, 1), (258, 0.42), (176, 0.2)]
-    var y = body.maxY - 168
+    let lines: [(width: CGFloat, alpha: CGFloat)] = [(276, 1), (224, 0.42), (152, 0.2)]
+    var y = screen.maxY - 128
     for line in lines {
         NSColor.white.withAlphaComponent(line.alpha).setFill()
-        NSBezierPath(roundedRect: CGRect(x: canvas / 2 - line.width / 2, y: y - 18, width: line.width, height: 36),
-                     xRadius: 18, yRadius: 18).fill()
-        y -= 70
+        NSBezierPath(roundedRect: CGRect(x: canvas / 2 - line.width / 2, y: y - 16, width: line.width, height: 32),
+                     xRadius: 16, yRadius: 16).fill()
+        y -= 62
     }
-
-    // Borda interna fina, como vidro.
     NSGraphicsContext.restoreGraphicsState()
-    NSColor.white.withAlphaComponent(dark ? 0.12 : 0.14).setStroke()
-    let rim = NSBezierPath(roundedRect: body.insetBy(dx: 1.5, dy: 1.5), xRadius: 185, yRadius: 185)
-    rim.lineWidth = 3
-    rim.stroke()
+
+    // Borda de fora, como o alumínio da tampa do Mac.
+    let edge = NSBezierPath(roundedRect: body.insetBy(dx: 2, dy: 2), xRadius: 184, yRadius: 184)
+    edge.lineWidth = 4
+    (dark ? NSColor.white.withAlphaComponent(0.14) : color(0x9A9AA0, 0.9)).setStroke()
+    edge.stroke()
     return rep
 }
 
