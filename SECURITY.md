@@ -23,8 +23,9 @@ published with credit to you, unless you prefer to stay anonymous.
 What Marquise does to keep your Mac safe, so you know what to expect and what counts as
 a vulnerability:
 
-- **Signed and notarized.** Releases are signed with a Developer ID and notarized by
-  Apple; macOS refuses to open a copy that was changed after release.
+- **Signed, not notarized yet.** Releases are code-signed, so macOS refuses to open a copy
+  that was changed after release, but they aren't notarized by Apple yet (that needs a paid
+  developer account). Check the SHA-256 below, or build from source.
 - **Hardened runtime** with only three entitlements: camera (the mirror), microphone
   input (voice following) and Apple Events (controlling Music and Spotify).
 - **Minimal network use.** The only connection Marquise makes is downloading Spotify album
@@ -48,8 +49,8 @@ Each release includes `SHA256SUMS.txt`. Compare it with:
 shasum -a 256 Marquise-1.0.dmg
 ```
 
-You can also check the signature and notarization:
+You can also check that the app's signature is intact after installing it:
 
 ```bash
-spctl --assess --type open --context context:primary-signature -v Marquise-1.0.dmg
+codesign --verify --deep --strict -v /Applications/Marquise.app
 ```

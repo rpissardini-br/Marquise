@@ -124,9 +124,17 @@ Right-click the island or use the gear button:
 2. Open it and drag **Marquise** to **Applications**.
 3. Open Marquise from Applications. It has no Dock icon: look at the notch.
 
-A `.pkg` installer is also available; it installs Marquise in `/Applications`.
+**The first time, macOS blocks it.** Marquise isn't notarized by Apple yet (that needs a paid
+developer account), so macOS says it can't check the app. To allow it, once:
 
-To check the download, compare its SHA-256 with `SHA256SUMS.txt` from the same release:
+1. Open Marquise. When macOS says it couldn't be opened, click **Done**.
+2. Open **System Settings → Privacy & Security** and scroll down to the message about Marquise.
+3. Click **Open Anyway** and confirm with your password or Touch ID.
+
+From then on it opens normally. If you prefer, [build it from source](#build-from-source)
+instead; the code is all here.
+
+To check that the download wasn't changed, compare its SHA-256 with `SHA256SUMS.txt` from the same release:
 
 ```bash
 shasum -a 256 Marquise-1.0.dmg

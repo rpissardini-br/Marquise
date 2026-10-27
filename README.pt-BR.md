@@ -126,9 +126,18 @@ Clique com o botão direito na ilha ou use a engrenagem:
 2. Abra e arraste a **Marquise** para **Aplicativos**.
 3. Abra a Marquise em Aplicativos. Ela não tem ícone no Dock: olhe para o notch.
 
-Também há um instalador `.pkg`, que coloca a Marquise em `/Applications`.
+**Na primeira vez, o macOS bloqueia.** A Marquise ainda não é notarizada pela Apple (isso exige
+uma conta paga de desenvolvedor), então o macOS diz que não consegue verificar o app. Para
+liberar, uma vez só:
 
-Para conferir o download, compare o SHA-256 com o `SHA256SUMS.txt` da mesma versão:
+1. Abra a Marquise. Quando o macOS disser que ela não pôde ser aberta, clique em **OK**.
+2. Abra **Ajustes do Sistema → Privacidade e Segurança** e desça até o aviso sobre a Marquise.
+3. Clique em **Abrir Mesmo Assim** e confirme com a senha ou o Touch ID.
+
+Depois disso ela abre normalmente. Se preferir, [compile a partir do código](#compilar-a-partir-do-código);
+ele está todo aqui.
+
+Para conferir que o download não foi alterado, compare o SHA-256 com o `SHA256SUMS.txt` da mesma versão:
 
 ```bash
 shasum -a 256 Marquise-1.0.dmg
