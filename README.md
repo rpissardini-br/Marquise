@@ -236,7 +236,11 @@ public issue.
 
 ## License
 
-[MIT](LICENSE)
+Copyright © 2026 Rafael Pissardini
+
+Marquise is free software under the [GNU General Public License v3.0](LICENSE). You can use,
+study, change and share it. If you distribute a modified version, it must also be released
+under the GPL-3.0, with its source code.
 
 Marquise is not affiliated with or endorsed by Apple. Dynamic Island, Mac, macOS and
 Apple Music are trademarks of Apple Inc. Spotify is a trademark of Spotify AB.

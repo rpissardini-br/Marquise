@@ -93,6 +93,9 @@ prompts are translated in `Resources/<language>.lproj/InfoPlist.strings`.
 
 ## Pull requests
 
+By opening a pull request, you agree that your contribution is licensed under the
+[GPL-3.0](LICENSE), like the rest of Marquise.
+
 1. Fork the repository and create a branch from `main`.
 2. Make the change and run `./build.sh` with no errors or new warnings.
 3. Try it in the app, in at least one other language if you changed text.
