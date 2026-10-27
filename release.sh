@@ -57,6 +57,7 @@ cp "$BIN" "$APP/Contents/MacOS/$EXECUTABLE"
 strip -S -x "$APP/Contents/MacOS/$EXECUTABLE"
 cp Info.plist "$APP/Contents/Info.plist"
 cp -R Resources/*.lproj Resources/AppIcon.icns "$APP/Contents/Resources/"
+Icon/compile-icon.sh "$APP/Contents/Resources"
 echo "Arquiteturas: $(lipo -archs "$APP/Contents/MacOS/$EXECUTABLE")"
 xattr -cr "$APP"
 

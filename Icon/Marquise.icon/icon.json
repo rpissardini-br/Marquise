@@ -1,0 +1,29 @@
+{
+  "fill" : {
+    "solid" : "srgb:0.03137,0.03137,0.03922,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "glass" : false,
+          "image-name-specializations" : [
+            {
+              "value" : "Marquise.png"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "Marquise-dark.png"
+            }
+          ],
+          "name" : "Marquise"
+        }
+      ]
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : [
+      "macOS"
+    ]
+  }
+}

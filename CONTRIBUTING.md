@@ -17,7 +17,8 @@ Marquise is a Swift package with no dependencies.
 ```
 
 `build.sh` compiles a release build, assembles `build/Marquise.app` and signs it with
-hardened runtime.
+hardened runtime. With Xcode installed it also compiles the light, dark, tinted and clear app
+icon for macOS 26 and later; without it, the app keeps the single classic icon.
 
 ### Local signing certificate (recommended)
 
@@ -67,7 +68,8 @@ each language are also generated. The README images in `docs/images` come from t
 | `Sources/Marquise/Localization.swift` | Languages and all interface text |
 | `Sources/Marquise/Snapshot.swift` | `--snapshot` mode |
 | `Resources/*.lproj/InfoPlist.strings` | Translated permission prompts |
-| `Icon/make-icon.swift` | Draws the app icon and generates `Resources/AppIcon.icns` (`swift Icon/make-icon.swift`) |
+| `Icon/make-icon.swift` | Draws the app icon (light and dark) and generates `Resources/AppIcon.icns` and the layers of `Icon/Marquise.icon` (`swift Icon/make-icon.swift`) |
+| `Icon/Marquise.icon` | Icon Composer icon for macOS 26+, compiled by `Icon/compile-icon.sh` (needs Xcode) |
 | `Extras/` | Code not in the app yet (battery indicator) |
 | `build.sh`, `release.sh` | Development build and release installers |
 

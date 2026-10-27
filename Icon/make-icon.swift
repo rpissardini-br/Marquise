@@ -36,7 +36,9 @@ func islandPath(in r: CGRect, flare f: CGFloat, bottomRadius b: CGFloat) -> NSBe
 /// O ícone é uma tela de Mac: moldura preta, a tela com o degradê da marca e a ilha descendo da
 /// moldura como o notch de verdade. `dark`: versão do modo escuro (padrão do macOS 27), com a
 /// tela mais profunda para combinar com os ícones escuros do sistema.
-func drawIcon(dark: Bool = false) -> NSBitmapImageRep {
+/// `fullBleed`: arte de borda a borda, sem margem, cantos nem sombra, para o formato do
+/// Icon Composer (o macOS aplica o formato, o vidro e a sombra dele).
+func drawIcon(dark: Bool = false, fullBleed: Bool = false) -> NSBitmapImageRep {
     let rep = NSBitmapImageRep(
         bitmapDataPlanes: nil, pixelsWide: Int(canvas), pixelsHigh: Int(canvas), bitsPerSample: 8,
         samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
@@ -49,10 +51,20 @@ func drawIcon(dark: Bool = false) -> NSBitmapImageRep {
     let shape = NSBezierPath(roundedRect: body, xRadius: 186, yRadius: 186)
     let bezel: UInt32 = 0x08080A
 
+    if fullBleed {
+        // O corpo de 824 px passa a ocupar a tela toda; os cantos ficam com a cor da moldura.
+        color(bezel).setFill()
+        CGRect(x: 0, y: 0, width: canvas, height: canvas).fill()
+        let transform = NSAffineTransform()
+        transform.scale(by: canvas / body.width)
+        transform.translateX(by: -body.minX, yBy: -body.minY)
+        transform.concat()
+    }
+
     // Sombra do ícone sobre a mesa.
     NSGraphicsContext.saveGraphicsState()
     let drop = NSShadow()
-    drop.shadowColor = NSColor.black.withAlphaComponent(0.35)
+    drop.shadowColor = NSColor.black.withAlphaComponent(fullBleed ? 0 : 0.35)
     drop.shadowBlurRadius = 28
     drop.shadowOffset = NSSize(width: 0, height: -12)
     drop.set()
@@ -112,7 +124,8 @@ func drawIcon(dark: Bool = false) -> NSBitmapImageRep {
     }
     NSGraphicsContext.restoreGraphicsState()
 
-    // Borda de fora, como o alumínio da tampa do Mac.
+    // Borda de fora, como o alumínio da tampa do Mac (no Icon Composer, o macOS desenha a dele).
+    guard !fullBleed else { return rep }
     let edge = NSBezierPath(roundedRect: body.insetBy(dx: 2, dy: 2), xRadius: 184, yRadius: 184)
     edge.lineWidth = 4
     (dark ? NSColor.white.withAlphaComponent(0.14) : color(0x9A9AA0, 0.9)).setStroke()
@@ -126,6 +139,14 @@ let master = iconDir.appendingPathComponent("AppIcon.png")
 try! drawIcon().representation(using: .png, properties: [:])!.write(to: master)
 try! drawIcon(dark: true).representation(using: .png, properties: [:])!
     .write(to: iconDir.appendingPathComponent("AppIcon-dark.png"))
+
+// Ícone do macOS 26+ (Icon Composer): uma camada clara e uma escura, trocadas pelo sistema.
+let assets = iconDir.appendingPathComponent("Marquise.icon/Assets")
+try! FileManager.default.createDirectory(at: assets, withIntermediateDirectories: true)
+try! drawIcon(fullBleed: true).representation(using: .png, properties: [:])!
+    .write(to: assets.appendingPathComponent("Marquise.png"))
+try! drawIcon(dark: true, fullBleed: true).representation(using: .png, properties: [:])!
+    .write(to: assets.appendingPathComponent("Marquise-dark.png"))
 
 // Tamanhos que o macOS usa (Finder, Dock, Spotlight…), empacotados num .icns.
 let iconset = FileManager.default.temporaryDirectory.appendingPathComponent("AppIcon.iconset")

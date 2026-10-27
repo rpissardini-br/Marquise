@@ -12,6 +12,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Marquise"
 cp Info.plist "$APP/Contents/Info.plist"
 cp -R Resources/*.lproj Resources/AppIcon.icns "$APP/Contents/Resources/"
+Icon/compile-icon.sh "$APP/Contents/Resources"
 # Com um certificado local do Porta-chaves (LOCAL_CERT, padrão "Ilha Local") a assinatura é a mesma a cada compilação,
 # então o macOS lembra das permissões (microfone, Automação…). Sem ele, assina ad-hoc.
 LOCAL_CERT="${LOCAL_CERT:-Ilha Local}"
