@@ -1,4 +1,4 @@
-// Desenha o ícone da Marquise e gera Resources/AppIcon.icns.
+// Desenha o ícone da Marquise (claro e escuro) e gera Resources/AppIcon.icns.
 // Uso: swift Icon/make-icon.swift   (na pasta do projeto)
 import AppKit
 
@@ -33,7 +33,9 @@ func islandPath(in r: CGRect, flare f: CGFloat, bottomRadius b: CGFloat) -> NSBe
     return p
 }
 
-func drawIcon() -> NSBitmapImageRep {
+/// `dark`: versão para o modo escuro no padrão do macOS 27: fundo quase preto e o desenho
+/// colorido (a ilha ganha o degradê da marca).
+func drawIcon(dark: Bool = false) -> NSBitmapImageRep {
     let rep = NSBitmapImageRep(
         bitmapDataPlanes: nil, pixelsWide: Int(canvas), pixelsHigh: Int(canvas), bitsPerSample: 8,
         samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
@@ -52,19 +54,25 @@ func drawIcon() -> NSBitmapImageRep {
     drop.shadowBlurRadius = 28
     drop.shadowOffset = NSSize(width: 0, height: -12)
     drop.set()
-    color(0x3A3F9E).setFill()
+    color(dark ? 0x101012 : 0x3A3F9E).setFill()
     shape.fill()
     NSGraphicsContext.restoreGraphicsState()
 
     NSGraphicsContext.saveGraphicsState()
     shape.addClip()
 
-    // Fundo: o mesmo degradê azul-violeta das telas da Marquise.
-    NSGradient(colors: [color(0x4757D8), color(0x7A4FC4), color(0xD0548F)],
-               atLocations: [0, 0.55, 1], colorSpace: .sRGB)!
-        .draw(in: body, angle: -60)
+    // Fundo: o mesmo degradê azul-violeta das telas da Marquise (no escuro, quase grafite).
+    if dark {
+        NSGradient(colors: [color(0x2C2C30), color(0x141416), color(0x0A0A0B)],
+                   atLocations: [0, 0.6, 1], colorSpace: .sRGB)!
+            .draw(in: body, angle: -90)
+    } else {
+        NSGradient(colors: [color(0x4757D8), color(0x7A4FC4), color(0xD0548F)],
+                   atLocations: [0, 0.55, 1], colorSpace: .sRGB)!
+            .draw(in: body, angle: -60)
+    }
     // Brilho suave vindo de cima.
-    NSGradient(colors: [NSColor.white.withAlphaComponent(0.22), NSColor.white.withAlphaComponent(0)])!
+    NSGradient(colors: [NSColor.white.withAlphaComponent(dark ? 0.08 : 0.22), NSColor.white.withAlphaComponent(0)])!
         .draw(in: CGRect(x: body.minX, y: body.midY, width: body.width, height: body.height / 2), angle: -90)
 
     // A ilha, presa à borda de cima.
@@ -72,13 +80,25 @@ func drawIcon() -> NSBitmapImageRep {
     let islandShape = islandPath(in: island, flare: 34, bottomRadius: 150)
     NSGraphicsContext.saveGraphicsState()
     let glow = NSShadow()
-    glow.shadowColor = NSColor.black.withAlphaComponent(0.45)
-    glow.shadowBlurRadius = 40
-    glow.shadowOffset = NSSize(width: 0, height: -18)
+    // No escuro, a sombra vira um brilho violeta suave, como nos ícones do sistema.
+    glow.shadowColor = dark ? color(0x7A4FC4, 0.45) : NSColor.black.withAlphaComponent(0.45)
+    glow.shadowBlurRadius = dark ? 60 : 40
+    glow.shadowOffset = NSSize(width: 0, height: dark ? -10 : -18)
     glow.set()
     color(0x050507).setFill()
     islandShape.fill()
     NSGraphicsContext.restoreGraphicsState()
+    if dark {
+        NSGraphicsContext.saveGraphicsState()
+        islandShape.addClip()
+        NSGradient(colors: [color(0x5B6CF0), color(0x8B5CF6), color(0xE0559A)],
+                   atLocations: [0, 0.5, 1], colorSpace: .sRGB)!
+            .draw(in: island, angle: -70)
+        // Reflexo de vidro no alto da ilha.
+        NSGradient(colors: [NSColor.white.withAlphaComponent(0.22), NSColor.white.withAlphaComponent(0)])!
+            .draw(in: CGRect(x: island.minX, y: island.midY, width: island.width, height: island.height / 2), angle: -90)
+        NSGraphicsContext.restoreGraphicsState()
+    }
 
     // Câmera no topo da ilha.
     let lensCenter = CGPoint(x: canvas / 2, y: body.maxY - 58)
@@ -91,7 +111,8 @@ func drawIcon() -> NSBitmapImageRep {
     NSBezierPath(ovalIn: CGRect(x: lensCenter.x + 36, y: lensCenter.y - 7, width: 14, height: 14)).fill()
 
     // Linhas do teleprompter: a atual em destaque, as seguintes se apagando.
-    let lines: [(width: CGFloat, alpha: CGFloat)] = [(318, 1), (258, 0.42), (176, 0.2)]
+    let lines: [(width: CGFloat, alpha: CGFloat)] = dark ? [(318, 1), (258, 0.6), (176, 0.38)]
+                                                          : [(318, 1), (258, 0.42), (176, 0.2)]
     var y = body.maxY - 168
     for line in lines {
         NSColor.white.withAlphaComponent(line.alpha).setFill()
@@ -102,7 +123,7 @@ func drawIcon() -> NSBitmapImageRep {
 
     // Borda interna fina, como vidro.
     NSGraphicsContext.restoreGraphicsState()
-    NSColor.white.withAlphaComponent(0.14).setStroke()
+    NSColor.white.withAlphaComponent(dark ? 0.12 : 0.14).setStroke()
     let rim = NSBezierPath(roundedRect: body.insetBy(dx: 1.5, dy: 1.5), xRadius: 185, yRadius: 185)
     rim.lineWidth = 3
     rim.stroke()
@@ -113,6 +134,8 @@ let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 let iconDir = root.appendingPathComponent("Icon")
 let master = iconDir.appendingPathComponent("AppIcon.png")
 try! drawIcon().representation(using: .png, properties: [:])!.write(to: master)
+try! drawIcon(dark: true).representation(using: .png, properties: [:])!
+    .write(to: iconDir.appendingPathComponent("AppIcon-dark.png"))
 
 // Tamanhos que o macOS usa (Finder, Dock, Spotlight…), empacotados num .icns.
 let iconset = FileManager.default.temporaryDirectory.appendingPathComponent("AppIcon.iconset")
