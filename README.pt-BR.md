@@ -165,7 +165,7 @@ ele está todo aqui.
 Para conferir que o download não foi alterado, compare o SHA-256 com o `SHA256SUMS.txt` da mesma versão:
 
 ```bash
-shasum -a 256 Marquise-1.1.dmg
+shasum -a 256 Marquise-1.1.1.dmg
 ```
 
 ### Permissões

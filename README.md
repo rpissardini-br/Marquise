@@ -161,7 +161,7 @@ instead; the code is all here.
 To check that the download wasn't changed, compare its SHA-256 with `SHA256SUMS.txt` from the same release:
 
 ```bash
-shasum -a 256 Marquise-1.1.dmg
+shasum -a 256 Marquise-1.1.1.dmg
 ```
 
 ### Permissions

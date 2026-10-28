@@ -3,7 +3,7 @@
 All notable changes to Marquise are listed here. Versions follow
 [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## [1.1.1] — 2026-10-28
 
 ### Fixed
 - The mirror showed no image when the island was hidden from screen recordings (the
