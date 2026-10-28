@@ -122,8 +122,16 @@ let voiceLog = Logger(subsystem: "com.marquise.app", category: "voice")
         AppLanguage.allCases.contains { L(.sampleScript, in: $0) == text }
     }
 
+    #if PROMO
+    /// Posição fixa do texto em cada quadro do vídeo de divulgação.
+    @ObservationIgnored var promoOffset: CGFloat?
+    #endif
+
     func offset(at date: Date) -> CGFloat {
-        min(max(followVoice ? voiceOffset(at: date) : manualOffset(at: date), 0), contentHeight)
+        #if PROMO
+        if let promoOffset { return promoOffset }
+        #endif
+        return min(max(followVoice ? voiceOffset(at: date) : manualOffset(at: date), 0), contentHeight)
     }
 
     private func manualOffset(at date: Date) -> CGFloat {
@@ -317,6 +325,9 @@ let voiceLog = Logger(subsystem: "com.marquise.app", category: "voice")
 
     /// Para as imagens de conferência (`--snapshot`).
     func showDemo(spokenThrough index: Int, status: VoiceStatus) {
+        #if PROMO
+        promoOffset = nil
+        #endif
         spokenIndex = index
         voiceStatus = status
         glide(to: layout.offset(forWord: index), animated: false)

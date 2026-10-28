@@ -431,10 +431,14 @@ func formatBytes(_ bytes: Int64) -> String {
         process.waitUntilExit()
     }
 
-    /// Dados de exemplo para o modo `--snapshot`.
-    func showDemo(done: Bool) {
+    /// Ícone do app de exemplo (ele não existe no disco).
+    static var demoAppIcon: NSImage?
+
+    /// Dados de exemplo para o modo `--snapshot` (`appURL` dá o ícone do app de exemplo).
+    func showDemo(done: Bool, allRemoved: Bool = false) {
+        let appURL = URL(fileURLWithPath: "/Applications/Lumen.app")
         let base = "/Users/demo/Library"
-        let app = AppBundle(url: URL(fileURLWithPath: "/Applications/Lumen.app"), name: "Lumen",
+        let app = AppBundle(url: appURL, name: "Lumen",
                             bundleID: "com.lumen.player", version: "3.2", executable: "Lumen", folderNames: ["Lumen"])
         self.app = app
         chosenURL = app.url
@@ -452,8 +456,8 @@ func formatBytes(_ bytes: Int64) -> String {
         selected = Set(items.map(\.id))
         phase = .review
         if done {
-            removed = Array(items.dropLast())
-            failed = [items[items.count - 1]]
+            removed = allRemoved ? items : Array(items.dropLast())
+            failed = allRemoved ? [] : [items[items.count - 1]]
             phase = .done
         }
     }

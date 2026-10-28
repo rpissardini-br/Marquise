@@ -18,6 +18,8 @@ enum MirrorStatus: Equatable {
 @Observable final class CameraMirror {
     /// Desligado no modo `--snapshot` (não pede a câmera).
     static var cameraEnabled = true
+    /// Imagem no lugar da câmera nas imagens de divulgação.
+    static var demoImage: NSImage?
 
     private(set) var isActive = false
     private(set) var status: MirrorStatus = .off
@@ -249,6 +251,10 @@ struct MirrorContent: View {
                     CameraPreview(frames: mirror.frames)
                         .opacity(mirror.status == .live ? 1 : 0)
                         .animation(.easeOut(duration: 0.25), value: mirror.status)
+                } else if mirror.status == .live, let demo = CameraMirror.demoImage {
+                    Image(nsImage: demo)
+                        .resizable()
+                        .scaledToFill()
                 } else if mirror.status == .off {
                     // Imagens de conferência: sem câmera, só o formato.
                     Image(systemName: "person.crop.rectangle")

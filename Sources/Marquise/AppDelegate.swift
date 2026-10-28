@@ -115,6 +115,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             MainActor.assumeIsolated { Snapshot.run(into: args[i + 1], language: language) }
             exit(0)
         }
+        #if PROMO
+        if args.contains("--promo") || args.contains("--promo-stills") {
+            exit(MainActor.assumeIsolated { Promo.run(arguments: args) })
+        }
+        #endif
         // `--leftovers <app>` mostra o que o desinstalador encontraria, sem mexer em nada.
         if let i = args.firstIndex(of: "--leftovers"), i + 1 < args.count {
             exit(LeftoverScanner.printReport(for: URL(fileURLWithPath: args[i + 1])))

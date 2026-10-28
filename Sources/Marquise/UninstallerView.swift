@@ -27,6 +27,7 @@ struct UninstallerView: View {
             }
         }
         .frame(minWidth: 520, minHeight: 440)
+        .environment(\.drawnControls, !scrolls)
     }
 
     // MARK: Partes
@@ -34,7 +35,7 @@ struct UninstallerView: View {
     @ViewBuilder private var header: some View {
         if let app = model.app {
             HStack(spacing: 14) {
-                Image(nsImage: NSWorkspace.shared.icon(forFile: app.url.path))
+                Image(nsImage: icon(for: app.url))
                     .resizable()
                     .frame(width: 56, height: 56)
                 VStack(alignment: .leading, spacing: 3) {
@@ -111,8 +112,10 @@ struct UninstallerView: View {
             Spacer()
             Button(L(.cancel), action: onClose)
                 .keyboardShortcut(.cancelAction)
+                .drawnButton(!scrolls)
             Button(L(.moveToTrash), action: model.remove)
                 .keyboardShortcut(.defaultAction)
+                .drawnButton(!scrolls, prominent: true)
                 .disabled(chosen.isEmpty || model.isRunning)
         }
         .padding(16)
@@ -160,15 +163,19 @@ struct UninstallerView: View {
                 Button(L(.showTrash)) {
                     NSWorkspace.shared.open(FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".Trash"))
                 }
+                .drawnButton(!scrolls)
                 Spacer()
                 if ok {
                     Button(L(.closeButton), action: onClose)
                         .keyboardShortcut(.defaultAction)
+                        .drawnButton(!scrolls, prominent: true)
                 } else {
                     Button(L(.closeButton), action: onClose)
                         .keyboardShortcut(.cancelAction)
+                        .drawnButton(!scrolls)
                     Button(L(.askFinder), action: model.moveFailedWithFinder)
                         .keyboardShortcut(.defaultAction)
+                        .drawnButton(!scrolls, prominent: true)
                 }
             }
             .padding(16)
@@ -210,6 +217,14 @@ struct UninstallerView: View {
     }
 }
 
+/// Ícone do item; o app das imagens de exemplo não existe no disco e tem ícone próprio.
+private func icon(for url: URL) -> NSImage {
+    if url.pathExtension == "app", let demo = Uninstaller.demoAppIcon, !FileManager.default.fileExists(atPath: url.path) {
+        return demo
+    }
+    return NSWorkspace.shared.icon(forFile: url.path)
+}
+
 private func abbreviated(_ url: URL) -> String {
     (url.path as NSString).abbreviatingWithTildeInPath
 }
@@ -217,6 +232,7 @@ private func abbreviated(_ url: URL) -> String {
 struct LeftoverRow: View {
     let model: Uninstaller
     let item: Leftover
+    @Environment(\.drawnControls) private var drawn
 
     var body: some View {
         let on = model.selected.contains(item.id)
@@ -230,7 +246,7 @@ struct LeftoverRow: View {
                     .foregroundStyle(on ? Color.accentColor : .secondary)
             }
             .buttonStyle(.plain)
-            Image(nsImage: NSWorkspace.shared.icon(forFile: item.url.path))
+            Image(nsImage: icon(for: item.url))
                 .resizable()
                 .frame(width: 22, height: 22)
             VStack(alignment: .leading, spacing: 1) {
@@ -253,13 +269,17 @@ struct LeftoverRow: View {
             Text(formatBytes(item.size))
                 .font(.callout.monospacedDigit())
                 .foregroundStyle(.secondary)
-            Button {
+            let reveal = Button {
                 NSWorkspace.shared.activateFileViewerSelecting([item.url])
             } label: {
                 Image(systemName: "magnifyingglass")
             }
-            .buttonStyle(.borderless)
             .help(L(.showInFinder))
+            if drawn {
+                reveal.buttonStyle(.plain).foregroundStyle(.secondary)
+            } else {
+                reveal.buttonStyle(.borderless)
+            }
         }
         .padding(.vertical, 3)
         .contentShape(Rectangle())
@@ -286,5 +306,45 @@ private struct Banner<Accessory: View>: View {
         .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(color.opacity(0.12)))
         .padding(.horizontal, 20)
         .padding(.bottom, 12)
+    }
+}
+
+// MARK: - Botões nas imagens
+
+private struct DrawnControlsKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// Nas imagens (`--snapshot`, vídeo), o ImageRenderer não desenha os controles do AppKit:
+    /// usa equivalentes desenhados em SwiftUI.
+    var drawnControls: Bool {
+        get { self[DrawnControlsKey.self] }
+        set { self[DrawnControlsKey.self] = newValue }
+    }
+}
+
+/// Botão no formato dos botões de janela do macOS, desenhado em SwiftUI.
+struct DrawnWindowButtonStyle: ButtonStyle {
+    let prominent: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 13))
+            .foregroundStyle(prominent ? Color.white : Color.primary)
+            .padding(.horizontal, 12)
+            .frame(height: 24)
+            .background(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(prominent ? Color.accentColor : Color.white)
+                    .shadow(color: .black.opacity(0.18), radius: 0.5, y: 0.5))
+            .overlay(RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .strokeBorder(.black.opacity(prominent ? 0 : 0.08)))
+    }
+}
+
+extension View {
+    @ViewBuilder func drawnButton(_ drawn: Bool, prominent: Bool = false) -> some View {
+        if drawn { buttonStyle(DrawnWindowButtonStyle(prominent: prominent)) } else { self }
     }
 }

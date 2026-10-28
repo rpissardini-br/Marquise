@@ -61,12 +61,15 @@ each language are also generated. The README images in `docs/images` come from t
 | `Sources/Marquise/VoiceListener.swift` | On-device speech recognition (SpeechAnalyzer) |
 | `Sources/Marquise/VoiceMatcher.swift` | Finds where the speaker is in the script |
 | `Sources/Marquise/Mirror.swift` | Camera mirror |
-| `Sources/Marquise/Shelf.swift` | File shelf and dragging files out |
+| `Sources/Marquise/Shelf.swift` | File shelf, AirDrop and dragging files out |
+| `Sources/Marquise/Uninstaller.swift` | Uninstaller: leftover scan rules and moving items to the Trash |
+| `Sources/Marquise/UninstallerView.swift` | Uninstaller window |
 | `Sources/Marquise/MediaController.swift` | Music and Spotify state and controls |
 | `Sources/Marquise/VolumeMonitor.swift` | System volume changes |
 | `Sources/Marquise/HotKeys.swift` | Global shortcuts |
 | `Sources/Marquise/Localization.swift` | Languages and all interface text |
 | `Sources/Marquise/Snapshot.swift` | `--snapshot` mode |
+| `Sources/Marquise/Promo.swift`, `Promo/make-promo.sh` | Promo video, rendered frame by frame from the real interface; only in a `-DPROMO` build, not in the app (`Promo/make-promo.sh` writes horizontal and vertical videos to `dist/promo/`) |
 | `Resources/*.lproj/InfoPlist.strings` | Translated permission prompts |
 | `Icon/make-icon.swift` | Draws the app icon (light and dark) and generates `Resources/AppIcon.icns` and the layers of `Icon/Marquise.icon` (`swift Icon/make-icon.swift`) |
 | `Icon/Marquise.icon` | Icon Composer icon for macOS 26+, compiled by `Icon/compile-icon.sh` (needs Xcode) |
