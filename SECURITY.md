@@ -46,7 +46,7 @@ a vulnerability:
 Each release includes `SHA256SUMS.txt`. Compare it with:
 
 ```bash
-shasum -a 256 Marquise-1.0.dmg
+shasum -a 256 Marquise-1.1.dmg
 ```
 
 You can also check that the app's signature is intact after installing it:

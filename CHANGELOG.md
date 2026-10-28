@@ -3,7 +3,7 @@
 All notable changes to Marquise are listed here. Versions follow
 [Semantic Versioning](https://semver.org).
 
-## [1.1] — unreleased
+## [1.1] — 2026-10-28
 
 ### Added
 - **AirDrop on the shelf:** drag files to the notch and drop them on the AirDrop tile, or send
