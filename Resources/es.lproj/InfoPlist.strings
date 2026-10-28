@@ -1,4 +1,4 @@
-NSAppleEventsUsageDescription = "Marquise lo usa para mostrar y controlar lo que suena en Música y Spotify.";
+NSAppleEventsUsageDescription = "Marquise usa esto para mostrar y controlar lo que suena en Música y Spotify, y para pedir a Finder que traslade archivos protegidos a la Papelera cuando desinstalas una app.";
 NSMicrophoneUsageDescription = "El teleprompter de Marquise escucha tu voz para que el texto siga lo que dices. El audio no sale de tu Mac.";
 NSSpeechRecognitionUsageDescription = "El teleprompter de Marquise transcribe tu voz en el propio Mac para que el texto siga lo que dices.";
 NSCameraUsageDescription = "Marquise usa la cámara solo para el espejo, para que te veas antes de una reunión. No se graba nada.";

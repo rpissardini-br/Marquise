@@ -75,6 +75,22 @@ struct ShelfItem: Identifiable, Hashable {
     }
 }
 
+/// Envia arquivos pelo AirDrop com a janela do próprio macOS (escolha de quem está perto).
+enum AirDrop {
+    static func send(_ urls: [URL]) {
+        guard !urls.isEmpty, let service = NSSharingService(named: .sendViaAirDrop),
+              service.canPerform(withItems: urls)
+        else {
+            NSSound.beep()
+            return
+        }
+        // A Marquise não aparece no Dock: sem ativar, a janela do AirDrop abre atrás dos outros apps.
+        NSApp.activate()
+        service.perform(withItems: urls)
+        shelfLog.notice("AirDrop: \(urls.count, privacy: .public) arquivo(s)")
+    }
+}
+
 final class ShelfDragSource: NSObject, NSDraggingSource {
     weak var shelf: Shelf?
     var draggedIDs: Set<URL> = []
@@ -167,11 +183,20 @@ struct ShelfView: View {
                         row
                     }
                 }
-                HStack {
+                HStack(spacing: 12) {
                     Text(L(.shelfHint))
                         .font(.system(size: 10))
                         .foregroundStyle(.white.opacity(0.35))
-                    Spacer()
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    Spacer(minLength: 0)
+                    Button { AirDrop.send(shelf.items.map(\.url)) } label: {
+                        Label("AirDrop", systemImage: "dot.radiowaves.up.forward")
+                    }
+                    .buttonStyle(.plain)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.5))
+                    .help(L(.sendAirDrop))
                     Button(L(.clear)) { shelf.removeAll() }
                         .buttonStyle(.plain)
                         .font(.system(size: 10, weight: .semibold))
@@ -208,6 +233,19 @@ struct ShelfItemView: View {
                 ShelfDragArea(
                     onBegin: { event, view in shelf.beginDrag([item], event: event, from: view) },
                     onDoubleClick: { NSWorkspace.shared.activateFileViewerSelecting([item.url]) })
+            }
+        }
+        .overlay(alignment: .topLeading) {
+            if hovering {
+                Button { AirDrop.send([item.url]) } label: {
+                    Image(systemName: "dot.radiowaves.up.forward")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 16, height: 16)
+                        .background(Circle().fill(Color(white: 0.3)))
+                }
+                .buttonStyle(.plain)
+                .help(L(.sendAirDrop))
             }
         }
         .overlay(alignment: .topTrailing) {
@@ -259,36 +297,97 @@ struct DragAllTile: View {
     }
 }
 
+/// Área de soltar: guardar na prateleira, mandar por AirDrop e, se for um app, desinstalar.
 struct DropZoneView: View {
     let model: IslandModel
 
     var body: some View {
-        let targeted = model.dropTargeted
-        let count = model.shelf.items.count
         VStack(spacing: 0) {
             Color.clear.frame(height: model.geometry.notchSize.height)
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.white.opacity(targeted ? 0.1 : 0.03))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .strokeBorder(.white.opacity(targeted ? 0.8 : 0.3), style: StrokeStyle(lineWidth: 1.5, dash: [6, 5])))
-                .overlay(VStack(spacing: 6) {
-                    Image(systemName: "tray.and.arrow.down.fill")
-                        .font(.system(size: 24, weight: .medium))
-                        .symbolEffect(.bounce, value: targeted)
-                    Text(targeted ? L(.dropToKeep) : L(.dragHere))
-                        .font(.system(size: 13, weight: .semibold))
-                    if count > 0 {
-                        Text(count == 1 ? L(.oneItemKept) : L(.itemsKept, count))
-                            .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.45))
-                    }
+            HStack(spacing: 10) {
+                ForEach(model.dropActions, id: \.self) { action in
+                    DropTile(model: model, action: action, targeted: model.dropTarget == action)
                 }
-                .foregroundStyle(.white))
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
-                .padding(.bottom, 16)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+            .padding(.bottom, 16)
         }
-        .animation(.easeOut(duration: 0.15), value: targeted)
+        .animation(.easeOut(duration: 0.15), value: model.dropTarget)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: model.dropActions)
+    }
+}
+
+struct DropTile: View {
+    let model: IslandModel
+    let action: DropAction
+    let targeted: Bool
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .fill(.white.opacity(targeted ? 0.1 : 0.03))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(.white.opacity(targeted ? 0.8 : 0.3), style: StrokeStyle(lineWidth: 1.5, dash: [6, 5])))
+            .overlay(VStack(spacing: 5) {
+                icon.frame(height: 28)
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold))
+                Text(subtitle)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.white.opacity(0.45))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+            .padding(.horizontal, 8)
+            .foregroundStyle(.white))
+            .transition(.opacity.combined(with: .scale(scale: 0.9)))
+    }
+
+    @ViewBuilder private var icon: some View {
+        switch action {
+        case .shelf:
+            Image(systemName: "tray.and.arrow.down.fill")
+                .font(.system(size: 22, weight: .medium))
+                .symbolEffect(.bounce, value: targeted)
+        case .airDrop:
+            Image(systemName: "dot.radiowaves.up.forward")
+                .font(.system(size: 22, weight: .medium))
+                .symbolEffect(.bounce, value: targeted)
+        case .uninstall:
+            if let app = model.dropApp {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: app.path))
+                    .resizable()
+                    .frame(width: 30, height: 30)
+                    .overlay(alignment: .bottomTrailing) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 12))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, Color.red)
+                            .offset(x: 3, y: 3)
+                    }
+                    .scaleEffect(targeted ? 1.1 : 1)
+            }
+        }
+    }
+
+    private var title: String {
+        switch action {
+        case .shelf: L(.dropShelf)
+        case .airDrop: "AirDrop"
+        case .uninstall: L(.dropUninstall)
+        }
+    }
+
+    private var subtitle: String {
+        switch action {
+        case .shelf:
+            let count = model.shelf.items.count
+            return count == 0 ? L(.dropShelfHint) : count == 1 ? L(.oneItemKept) : L(.itemsKept, count)
+        case .airDrop:
+            return L(.airDropHint)
+        case .uninstall:
+            return model.dropApp?.deletingPathExtension().lastPathComponent ?? ""
+        }
     }
 }

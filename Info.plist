@@ -35,7 +35,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Marquise uses this to show and control what's playing in Music and Spotify.</string>
+	<string>Marquise uses this to show and control what's playing in Music and Spotify, and to ask Finder to move protected files to the Trash when you uninstall an app.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Marquise uses the camera only for the mirror, so you can check how you look before a meeting. Nothing is recorded.</string>
 	<key>NSCameraUseContinuityCameraDeviceType</key>

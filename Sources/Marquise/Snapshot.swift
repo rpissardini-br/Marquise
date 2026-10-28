@@ -24,7 +24,12 @@ import SwiftUI
             }),
             ("7c-espelho", { $0.mirror.start() }),
             ("7d-espelho-iphone", { $0.mirror.showDemo(.offerIPhone, camera: "iPhone", lidClosed: true) }),
-            ("8-soltar-arquivo", { $0.shelfDropMode = true; $0.dropTargeted = true }),
+            ("8-soltar-arquivo", { $0.shelfDropMode = true; $0.dropTarget = .shelf }),
+            ("8b-soltar-app", { m in
+                m.shelfDropMode = true
+                m.dropApp = URL(fileURLWithPath: "/System/Applications/Calculator.app")
+                m.dropTarget = .uninstall
+            }),
             ("9-prateleira", { m in
                 let base = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
                 m.shelf.removeAll()
@@ -63,6 +68,23 @@ import SwiftUI
             .frame(width: 640, height: max(220, model.currentSize.height + 40))
             .environment(\.colorScheme, .dark)
 
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 2
+            guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,
+                  let png = NSBitmapImageRep(data: tiff)?.representation(using: .png, properties: [:])
+            else { continue }
+            try? png.write(to: URL(fileURLWithPath: directory).appendingPathComponent("\(name).png"))
+        }
+
+        // Janela do desinstalador, com dados de exemplo.
+        Localization.shared.choice = mainLanguage
+        for (name, done) in [("11-desinstalador", false), ("12-desinstalador-pronto", true)] {
+            let uninstaller = Uninstaller()
+            uninstaller.showDemo(done: done)
+            let view = UninstallerView(model: uninstaller, onClose: {}, scrolls: false)
+                .frame(width: 600, height: 560)
+                .background(Color(nsColor: .windowBackgroundColor))
+                .environment(\.colorScheme, .light)
             let renderer = ImageRenderer(content: view)
             renderer.scale = 2
             guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,

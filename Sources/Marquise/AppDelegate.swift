@@ -3,6 +3,7 @@ import Carbon.HIToolbox
 import os
 import ServiceManagement
 import SwiftUI
+import UniformTypeIdentifiers
 
 final class IslandPanel: NSPanel {
     init() {
@@ -32,6 +33,8 @@ let shelfLog = Logger(subsystem: "com.marquise.app", category: "shelf")
 /// View de fundo da ilha que recebe os arquivos soltos (a interface SwiftUI fica por cima).
 final class DropTargetView: NSView {
     var acceptsDrop: () -> Bool = { false }
+    /// O que está sendo arrastado (lido quando o arrasto entra na ilha).
+    var onDragContents: ([URL]) -> Void = { _ in }
     var onDropTargetChange: (Bool) -> Void = { _ in }
     var onDropFiles: ([URL]) -> Bool = { _ in false }
 
@@ -56,6 +59,8 @@ final class DropTargetView: NSView {
     }
 
     override func draggingEntered(_ sender: NSDraggingInfo) -> NSDragOperation {
+        onDragContents(sender.draggingPasteboard.readObjects(
+            forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? [])
         let operation = dropOperation(sender)
         shelfLog.notice("draggingEntered: aceita=\(operation != [], privacy: .public)")
         return operation
@@ -87,6 +92,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let model = IslandModel()
     private var panel: IslandPanel!
     private var editorWindow: NSWindow?
+    private var uninstallerWindow: NSWindow?
     private var hotKeys: HotKeys?
     private var monitors: [Any] = []
     private var openWork: DispatchWorkItem?
@@ -109,6 +115,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             MainActor.assumeIsolated { Snapshot.run(into: args[i + 1], language: language) }
             exit(0)
         }
+        // `--leftovers <app>` mostra o que o desinstalador encontraria, sem mexer em nada.
+        if let i = args.firstIndex(of: "--leftovers"), i + 1 < args.count {
+            exit(LeftoverScanner.printReport(for: URL(fileURLWithPath: args[i + 1])))
+        }
 
         panel = IslandPanel()
         let host = FirstMouseHostingView(rootView: IslandRootView(model: model))
@@ -122,10 +132,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return false }
             return self.model.shelfDropMode && self.model.hitRect.contains(NSEvent.mouseLocation)
         }
-        dropTarget.onDropTargetChange = { [weak self] targeted in
-            if self?.model.dropTargeted != targeted { self?.model.dropTargeted = targeted }
+        dropTarget.onDragContents = { [weak self] urls in
+            let app = urls.count == 1 && urls[0].pathExtension == "app" ? urls[0] : nil
+            if self?.model.dropApp != app { self?.model.dropApp = app }
         }
-        dropTarget.onDropFiles = { [weak self] urls in self?.received(urls) ?? false }
+        dropTarget.onDropTargetChange = { [weak self] targeted in
+            guard let self else { return }
+            let target = targeted ? self.model.dropAction(atX: NSEvent.mouseLocation.x) : nil
+            if self.model.dropTarget != target { self.model.dropTarget = target }
+        }
+        dropTarget.onDropFiles = { [weak self] urls in
+            guard let self else { return false }
+            return self.received(urls, action: self.model.dropAction(atX: NSEvent.mouseLocation.x))
+        }
         applyCaptureVisibility()
         layoutPanel()
         panel.orderFrontRegardless()
@@ -363,21 +382,68 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func leaveDropMode() {
         guard model.shelfDropMode else { return }
         model.shelfDropMode = false
-        model.dropTargeted = false
+        model.dropTarget = nil
+        model.dropApp = nil
         if !model.isOpen && !prompter.isActive { panel.ignoresMouseEvents = true }
     }
 
-    private func received(_ urls: [URL]) -> Bool {
+    private func received(_ urls: [URL], action: DropAction) -> Bool {
         // Só a quantidade: nomes de arquivos não vão para o log do sistema.
-        shelfLog.notice("recebido(s): \(urls.count, privacy: .public) arquivo(s)")
+        shelfLog.notice("recebido(s): \(urls.count, privacy: .public) arquivo(s), ação=\(String(describing: action), privacy: .public)")
         guard !urls.isEmpty else { return false }
-        model.shelf.add(urls)
-        model.tab = .shelf
-        model.shelfDropMode = false
-        model.dropTargeted = false
         NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
-        open()
+        switch action {
+        case .shelf:
+            model.shelf.add(urls)
+            model.tab = .shelf
+            model.shelfDropMode = false
+            model.dropTarget = nil
+            model.dropApp = nil
+            open()
+        case .airDrop:
+            leaveDropMode()
+            // Depois do arrasto terminar, senão a janela do AirDrop abre com o arrasto ainda em curso.
+            DispatchQueue.main.async { AirDrop.send(urls) }
+        case .uninstall:
+            leaveDropMode()
+            DispatchQueue.main.async { [weak self] in self?.showUninstaller(urls[0]) }
+        }
         return true
+    }
+
+    // MARK: - Desinstalador
+
+    private func showUninstaller(_ app: URL) {
+        let uninstaller = Uninstaller()
+        let window = uninstallerWindow ?? {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 600, height: 560),
+                styleMask: [.titled, .closable, .resizable, .miniaturizable],
+                backing: .buffered, defer: false)
+            window.isReleasedWhenClosed = false
+            window.center()
+            uninstallerWindow = window
+            return window
+        }()
+        window.title = L(.uninstallerTitle)
+        window.contentView = NSHostingView(rootView: UninstallerView(
+            model: uninstaller, onClose: { [weak window] in window?.close() })
+            .environment(\.locale, Localization.shared.locale))
+        uninstaller.load(app)
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    @objc private func uninstallMenuItem() {
+        let panel = NSOpenPanel()
+        panel.directoryURL = URL(fileURLWithPath: "/Applications")
+        panel.allowedContentTypes = [.application]
+        panel.treatsFilePackagesAsDirectories = false
+        panel.message = L(.chooseAppToUninstall)
+        panel.prompt = L(.dropUninstall)
+        NSApp.activate()
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        showUninstaller(url)
     }
 
     // MARK: - Teleprompter
@@ -530,6 +596,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             action: #selector(mirrorMenuItem), keyEquivalent: "")
         mirrorItem.target = self
         menu.addItem(mirrorItem)
+        let uninstallItem = NSMenuItem(title: L(.menuUninstall), action: #selector(uninstallMenuItem), keyEquivalent: "")
+        uninstallItem.target = self
+        menu.addItem(uninstallItem)
         menu.addItem(.separator())
 
         let languageMenu = NSMenu()

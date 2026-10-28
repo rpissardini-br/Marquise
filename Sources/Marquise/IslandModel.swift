@@ -48,13 +48,21 @@ enum OpenTab: Equatable {
     case home, shelf
 }
 
+/// O que fazer com o que foi solto na ilha.
+enum DropAction: Hashable {
+    case shelf, airDrop, uninstall
+}
+
 @Observable final class IslandModel {
     var geometry = NotchGeometry.fallback
     var isOpen = false
     var tab: OpenTab = .home
     /// Um arquivo está sendo arrastado perto da ilha: ela vira área de soltar.
     var shelfDropMode = false
-    var dropTargeted = false
+    /// Quadro da área de soltar que está sob o cursor.
+    var dropTarget: DropAction?
+    /// Um app (sozinho) está sendo arrastado: aparece o quadro de desinstalar.
+    var dropApp: URL?
     private(set) var activity: LiveActivity?
 
     let media = MediaController()
@@ -122,6 +130,18 @@ enum OpenTab: Equatable {
 
     var dropSize: CGSize {
         CGSize(width: max(geometry.notchSize.width + 240, 460), height: geometry.notchSize.height + 112)
+    }
+
+    var dropActions: [DropAction] {
+        dropApp == nil ? [.shelf, .airDrop] : [.shelf, .airDrop, .uninstall]
+    }
+
+    /// Quadro da área de soltar na posição horizontal `x` (coordenadas globais).
+    func dropAction(atX x: CGFloat) -> DropAction {
+        let actions = dropActions
+        let inner = dropSize.width - 32
+        let index = Int(((x - (geometry.centerX - inner / 2)) / inner * CGFloat(actions.count)).rounded(.down))
+        return actions[min(max(index, 0), actions.count - 1)]
     }
 
     /// Tamanho atual do corpo da ilha (sem as abas do topo).

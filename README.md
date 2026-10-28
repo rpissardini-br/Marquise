@@ -4,7 +4,7 @@
 
 # Marquise
 
-**A Dynamic Island for the Mac notch — with a camera-aligned teleprompter, a mirror and a file shelf.**
+**A Dynamic Island for the Mac notch — with a camera-aligned teleprompter, a mirror, a file shelf with AirDrop and an app uninstaller.**
 
 [Português (Brasil)](README.pt-BR.md) · [Download](../../releases/latest) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md)
 
@@ -89,6 +89,30 @@ shelf. When you drag it out, the Finder decides as usual: on the same disk the f
 moved, to another disk it is copied. Hold <kbd>⌘</kbd> while dropping to move between disks.
 Items leave the shelf once they have been dropped somewhere.
 
+**AirDrop:** while you drag files to the notch, drop them on the **AirDrop** tile to send them
+right away. On the shelf, the **AirDrop** button sends everything, and the small AirDrop
+button that appears on hover sends a single item.
+
+### App uninstaller
+
+Drag an app to the notch and drop it on the **Uninstall** tile, or choose
+**Uninstall an App…** in the options menu. Marquise lists the app and what it left in your
+Library — data, containers, caches, preferences, logs and background items — with the size
+of each, and moves only what you keep checked to the Trash. Nothing is deleted for good.
+
+The search is deliberately conservative: it only looks in known Library folders, and an item
+must carry the app's exact bundle ID (`com.company.app`) or the app's exact name. It skips
+folders of other apps from the same company, vendor folders like *Google* or *Adobe*, Apple
+apps, and Marquise itself. If another copy of the app is installed, only the app is selected,
+since both copies share the same data. Items in system folders show a lock: Finder can move
+them after asking for your password.
+
+To see what would be removed without moving anything:
+
+```bash
+/Applications/Marquise.app/Contents/MacOS/Marquise --leftovers /Applications/App.app
+```
+
 ### Now playing, volume and clock
 
 <p align="center">
@@ -151,6 +175,8 @@ only the related feature is disabled.
 | Microphone | Voice following in the teleprompter |
 | Speech Recognition | Turning your voice into text, on the Mac |
 | Automation (Music, Spotify) | Showing and controlling what is playing |
+| Automation (Finder) | Moving protected files to the Trash in the uninstaller, only when you ask |
+| Access data from other apps | Sizing and removing an app's container in the uninstaller |
 
 You can change them later in **System Settings → Privacy & Security**.
 
@@ -178,6 +204,8 @@ You can change them later in **System Settings → Privacy & Security**.
   Marquise.
 - If another app already uses one of the shortcuts, it won't work in Marquise, and there is
   no warning yet.
+- The uninstaller finds what an app leaves under its own name or bundle ID. Data an app
+  stores under another name (for example a company folder) is not listed, by design.
 - The shelf keeps references, not copies: if a file is moved or deleted elsewhere, it
   disappears from the shelf.
 - With voice following on, the microphone stays active while the teleprompter is paused.

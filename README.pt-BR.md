@@ -4,7 +4,7 @@
 
 # Marquise
 
-**Uma Dynamic Island para o notch do Mac — com teleprompter alinhado à câmera, espelho e uma prateleira de arquivos.**
+**Uma Dynamic Island para o notch do Mac — com teleprompter alinhado à câmera, espelho, prateleira de arquivos com AirDrop e desinstalador de apps.**
 
 [English](README.md) · [Download](../../releases/latest) · [Novidades](CHANGELOG.md) · [Segurança](SECURITY.md)
 
@@ -91,6 +91,31 @@ prateleira. Quando você o arrasta para fora, o Finder decide como sempre: no me
 arquivo é movido, para outro disco é copiado. Segure <kbd>⌘</kbd> ao soltar para mover entre
 discos. Os itens saem da prateleira depois de soltos em algum lugar.
 
+**AirDrop:** enquanto arrasta arquivos até o notch, solte-os no quadro **AirDrop** para
+enviá-los na hora. Na prateleira, o botão **AirDrop** envia tudo, e o botãozinho de AirDrop
+que aparece ao passar o mouse envia um item só.
+
+### Desinstalador de apps
+
+Arraste um app até o notch e solte no quadro **Desinstalar**, ou escolha
+**Desinstalar um app…** no menu de opções. A Marquise lista o app e o que ele deixou na sua
+Biblioteca — dados, contêineres, caches, preferências, registros e itens que abrem
+sozinhos — com o tamanho de cada um, e move para o Lixo só o que continuar marcado. Nada é
+apagado de vez.
+
+A busca é conservadora de propósito: só olha pastas conhecidas da Biblioteca, e o item precisa
+ter o identificador exato do app (`com.empresa.app`) ou o nome exato dele. Ficam de fora pastas
+de outros apps da mesma empresa, pastas de fabricante como *Google* ou *Adobe*, apps da Apple e
+a própria Marquise. Se houver outra cópia do app instalada, só o app vem marcado, porque as
+duas cópias usam os mesmos dados. Itens em pastas do sistema aparecem com um cadeado: o Finder
+pode movê-los pedindo a sua senha.
+
+Para ver o que seria removido sem mexer em nada:
+
+```bash
+/Applications/Marquise.app/Contents/MacOS/Marquise --leftovers /Applications/App.app
+```
+
 ### Música, volume e relógio
 
 <p align="center">
@@ -154,6 +179,8 @@ nenhuma delas; só o recurso correspondente fica desligado.
 | Microfone | Seguir a voz no teleprompter |
 | Reconhecimento de Fala | Transformar a voz em texto, no próprio Mac |
 | Automação (Música, Spotify) | Mostrar e controlar o que está tocando |
+| Automação (Finder) | Mover arquivos protegidos para o Lixo no desinstalador, só quando você pede |
+| Acessar dados de outros apps | Medir e remover o contêiner de um app no desinstalador |
 
 Dá para mudar depois em **Ajustes do Sistema → Privacidade e Segurança**.
 
@@ -182,6 +209,8 @@ Dá para mudar depois em **Ajustes do Sistema → Privacidade e Segurança**.
 - Enquanto a ilha está aberta, ela cobre a área logo abaixo do notch, então cliques ali vão
   para a Marquise.
 - Se outro app já usa um dos atalhos, ele não funciona na Marquise, e ainda não há aviso.
+- O desinstalador acha o que o app deixa com o nome ou o identificador dele. Dados que um
+  app guarda com outro nome (por exemplo, numa pasta da empresa) não aparecem, de propósito.
 - A prateleira guarda referências, não cópias: se um arquivo for movido ou apagado por
   outro caminho, ele some da prateleira.
 - Com "seguir a voz" ligado, o microfone continua ativo enquanto o teleprompter está pausado.

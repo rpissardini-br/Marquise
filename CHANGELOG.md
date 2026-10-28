@@ -3,7 +3,25 @@
 All notable changes to Marquise are listed here. Versions follow
 [Semantic Versioning](https://semver.org).
 
-## [1.0] — unreleased
+## [1.1] — unreleased
+
+### Added
+- **AirDrop on the shelf:** drag files to the notch and drop them on the AirDrop tile, or send
+  shelf items with the AirDrop button (all at once or one at a time on hover).
+- **App uninstaller:** drag an app to the notch and drop it on the Uninstall tile, or choose
+  *Uninstall an App…* in the options menu. Marquise lists the app and the files it left in
+  the Library (data, containers, caches, preferences, logs and background items), with sizes,
+  and moves only what you keep checked to the Trash. Nothing is deleted for good.
+  - Conservative matching: only known Library folders, only the app's exact bundle ID or exact
+    name, never a sibling app's ID (`com.app.canary`) or a vendor folder.
+  - Refuses Apple apps, apps inside other apps and Marquise itself; asks you to quit the app
+    first; with another copy of the app installed, only the app is selected.
+  - Protected items (system folders, apps macOS protects) can be moved with Finder, which asks
+    for your password.
+  - `Marquise --leftovers /Applications/App.app` prints what would be removed, without moving
+    anything.
+
+## [1.0] — 2026-10-27
 
 First public release.
 
