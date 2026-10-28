@@ -3,6 +3,14 @@
 All notable changes to Marquise are listed here. Versions follow
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Fixed
+- The mirror showed no image when the island was hidden from screen recordings (the
+  default), as happened on an external monitor. Marquise now draws the camera frames
+  itself, so the mirror shows up for you and still stays out of recordings and screen
+  sharing.
+
 ## [1.1] — 2026-10-28
 
 ### Added

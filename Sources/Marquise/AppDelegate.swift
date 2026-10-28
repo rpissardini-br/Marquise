@@ -190,6 +190,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         model.media.start()
 
         if pinnedOpen { open() }
+        // `--mirror` abre o espelho ao iniciar (útil para testar a câmera).
+        if args.contains("--mirror") { model.mirror.start() }
     }
 
     // MARK: - Posicionamento

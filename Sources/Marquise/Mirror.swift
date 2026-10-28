@@ -2,7 +2,10 @@ import AppKit
 import AVFoundation
 import IOKit
 import Observation
+import os
 import SwiftUI
+
+let mirrorLog = Logger(subsystem: "com.marquise.app", category: "mirror")
 
 enum MirrorStatus: Equatable {
     case off, starting, live, denied, noCamera
@@ -25,6 +28,8 @@ enum MirrorStatus: Equatable {
     @ObservationIgnored var onActiveChange: () -> Void = {}
 
     @ObservationIgnored let session = AVCaptureSession()
+    /// Os quadros da câmera, desenhados pela própria Marquise (veja `CameraFrames`).
+    @ObservationIgnored let frames = CameraFrames()
     /// `startRunning`/`stopRunning` bloqueiam: rodam numa fila própria, em ordem.
     @ObservationIgnored private let queue = DispatchQueue(label: "marquise.camera")
     /// Câmera ligada à sessão (só lida e escrita na `queue`).
@@ -34,6 +39,17 @@ enum MirrorStatus: Equatable {
     @ObservationIgnored private var connectObserver: NSObjectProtocol?
 
     func toggle() { isActive ? stop() : start() }
+
+    init() {
+        let center = NotificationCenter.default
+        center.addObserver(forName: AVCaptureSession.runtimeErrorNotification, object: session, queue: .main) { note in
+            let error = note.userInfo?[AVCaptureSessionErrorKey] as? NSError
+            mirrorLog.error("erro na sessão da câmera: \(error?.domain ?? "?", privacy: .public) \(error?.code ?? 0, privacy: .public)")
+        }
+        center.addObserver(forName: AVCaptureSession.wasInterruptedNotification, object: session, queue: .main) { _ in
+            mirrorLog.notice("sessão da câmera interrompida")
+        }
+    }
 
     func start() {
         guard !isActive else { return }
@@ -65,7 +81,11 @@ enum MirrorStatus: Equatable {
         connectObserver = nil
         onActiveChange()
         let session = session
-        queue.async { if session.isRunning { session.stopRunning() } }
+        let frames = frames
+        queue.async {
+            if session.isRunning { session.stopRunning() }
+            frames.clear()
+        }
     }
 
     /// Para as imagens de conferência (`--snapshot`).
@@ -92,6 +112,9 @@ enum MirrorStatus: Equatable {
     private func chooseCamera() {
         guard isActive else { return }
         lidClosed = Self.isLidClosed
+        let all = Self.cameras([.builtInWideAngleCamera, .continuityCamera, .external])
+            .map { "\($0.modelID)[\($0.deviceType.rawValue), conectada=\($0.isConnected), suspensa=\($0.isSuspended)]" }
+        mirrorLog.notice("escolhendo câmera; tampa fechada=\(self.lidClosed, privacy: .public); câmeras: \(all.joined(separator: "; "), privacy: .public)")
         // Com a tampa fechada o macOS ainda lista a câmera do MacBook, mas ela não entrega imagem.
         if !lidClosed,
            let builtIn = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .unspecified) {
@@ -132,6 +155,7 @@ enum MirrorStatus: Equatable {
             guard let self else { return }
             let ready = self.configure(device)
             if ready { self.session.startRunning() }
+            mirrorLog.notice("câmera \(device.modelID, privacy: .public): configurada=\(ready, privacy: .public), rodando=\(self.session.isRunning, privacy: .public), conectada=\(device.isConnected, privacy: .public), suspensa=\(device.isSuspended, privacy: .public), entradas=\(self.session.inputs.count, privacy: .public)")
             DispatchQueue.main.async {
                 // Fechado enquanto a câmera ligava: o stop() já está na fila, depois deste bloco.
                 guard self.isActive else { return }
@@ -153,7 +177,11 @@ enum MirrorStatus: Equatable {
             return false
         }
         session.addInput(input)
+        if !session.outputs.contains(frames.output), session.canAddOutput(frames.output) {
+            session.addOutput(frames.output)
+        }
         session.commitConfiguration()
+        frames.follow(device)
         currentDeviceID = device.uniqueID
         return true
     }
@@ -218,7 +246,7 @@ struct MirrorContent: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.white.opacity(0.06))
                 if CameraMirror.cameraEnabled {
-                    CameraPreview(session: mirror.session, live: mirror.status == .live)
+                    CameraPreview(frames: mirror.frames)
                         .opacity(mirror.status == .live ? 1 : 0)
                         .animation(.easeOut(duration: 0.25), value: mirror.status)
                 } else if mirror.status == .off {
@@ -294,27 +322,90 @@ struct PillButtonStyle: ButtonStyle {
     }
 }
 
+/// Recebe os quadros da câmera e os entrega à prévia.
+///
+/// A prévia pronta do sistema (`AVCaptureVideoPreviewLayer`) é desenhada fora do app, e o macOS
+/// não a mostra numa janela escondida de gravações (o padrão da ilha): o espelho ficava vazio.
+/// Desenhando cada quadro aqui, a imagem aparece para você e continua fora das gravações.
+final class CameraFrames: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+    let output = AVCaptureVideoDataOutput()
+    /// Camada onde o quadro é desenhado (só usada na fila principal).
+    weak var layer: CALayer?
+    /// O quadro na tela fica guardado para a câmera não reaproveitá-lo enquanto aparece.
+    private var shown: CVPixelBuffer?
+    private var rotation: AVCaptureDevice.RotationCoordinator?
+    private var rotationObserver: NSKeyValueObservation?
+
+    override init() {
+        super.init()
+        output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+        output.alwaysDiscardsLateVideoFrames = true
+        output.setSampleBufferDelegate(self, queue: DispatchQueue(label: "marquise.camera.frames"))
+    }
+
+    /// Mantém a imagem em pé, mesmo com o iPhone na vertical (chame depois de ligar a câmera).
+    func follow(_ device: AVCaptureDevice) {
+        let coordinator = AVCaptureDevice.RotationCoordinator(device: device, previewLayer: nil)
+        rotation = coordinator
+        apply(coordinator.videoRotationAngleForHorizonLevelCapture)
+        rotationObserver = coordinator.observe(\.videoRotationAngleForHorizonLevelCapture) { [weak self] coordinator, _ in
+            self?.apply(coordinator.videoRotationAngleForHorizonLevelCapture)
+        }
+    }
+
+    private func apply(_ angle: CGFloat) {
+        guard let connection = output.connection(with: .video), connection.isVideoRotationAngleSupported(angle) else { return }
+        connection.videoRotationAngle = angle
+    }
+
+    func clear() {
+        DispatchQueue.main.async { [weak self] in
+            self?.shown = nil
+            self?.layer?.contents = nil
+        }
+    }
+
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        guard let buffer = CMSampleBufferGetImageBuffer(sampleBuffer),
+              let surface = CVPixelBufferGetIOSurface(buffer)?.takeUnretainedValue()
+        else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let layer = self.layer else { return }
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            layer.contents = surface
+            CATransaction.commit()
+            self.shown = buffer
+        }
+    }
+}
+
 /// Prévia da câmera, espelhada como um espelho de verdade.
 struct CameraPreview: NSViewRepresentable {
-    let session: AVCaptureSession
-    let live: Bool
+    let frames: CameraFrames
 
-    func makeNSView(context: Context) -> CameraPreviewView { CameraPreviewView(session: session) }
+    func makeNSView(context: Context) -> CameraPreviewView {
+        let view = CameraPreviewView()
+        frames.layer = view.image
+        return view
+    }
 
     func updateNSView(_ view: CameraPreviewView, context: Context) {
-        if live { view.applyMirroring() }
+        frames.layer = view.image
     }
 }
 
 final class CameraPreviewView: NSView {
-    private let preview: AVCaptureVideoPreviewLayer
+    let image = CALayer()
 
-    init(session: AVCaptureSession) {
-        preview = AVCaptureVideoPreviewLayer(session: session)
-        preview.videoGravity = .resizeAspectFill
+    init() {
         super.init(frame: .zero)
         wantsLayer = true
-        layer?.addSublayer(preview)
+        image.contentsGravity = .resizeAspectFill
+        image.masksToBounds = true
+        // Espelhada: você se vê como num espelho.
+        image.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1))
+        layer?.addSublayer(image)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
@@ -323,15 +414,7 @@ final class CameraPreviewView: NSView {
         super.layout()
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        preview.frame = bounds
+        image.frame = bounds
         CATransaction.commit()
-        applyMirroring()
-    }
-
-    /// A conexão só existe depois que a câmera foi ligada à sessão.
-    func applyMirroring() {
-        guard let connection = preview.connection, connection.isVideoMirroringSupported else { return }
-        connection.automaticallyAdjustsVideoMirroring = false
-        connection.isVideoMirrored = true
     }
 }
