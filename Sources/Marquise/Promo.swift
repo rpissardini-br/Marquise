@@ -7,12 +7,15 @@ import UniformTypeIdentifiers
 /// Vídeo de divulgação, desenhado quadro a quadro com a interface real da ilha.
 /// Só existe na compilação com `-DPROMO` (veja `Promo/make-promo.sh`); não vai no app.
 ///
-/// `Marquise --promo <saida.mp4> [idioma] [--vertical]` grava o vídeo (1920×1080, ou 1080×1920 com
+/// `Marquise --promo <saida.mp4> [idioma] [--vertical]` grava o vídeo (cerca de 46 s; 1920×1080, ou 1080×1920 com
 /// `--vertical`, para Reels, TikTok e Shorts; 30 qps, sem áudio).
 /// `Marquise --promo-stills <pasta> [idioma] [--vertical]` grava só alguns quadros em PNG, para conferir.
 @MainActor enum Promo {
     static let fps = 30
+    /// Duração da linha do tempo das cenas (segundos de cena).
     static let duration = 33.0
+    /// Ritmo: cada segundo de cena dura `pace` segundos no vídeo (o vídeo tem 33 × 1,4 ≈ 46 s).
+    static let pace = 1.4
     /// A cena é desenhada em pontos e ampliada 1,6× para 1920×1080.
     static var vertical = false
     static var canvas: CGSize { vertical ? CGSize(width: 675, height: 1200) : CGSize(width: 1200, height: 675) }
@@ -80,10 +83,10 @@ import UniformTypeIdentifiers
         guard writer.startWriting() else { return false }
         writer.startSession(atSourceTime: .zero)
 
-        let total = Int(duration * Double(fps))
+        let total = Int(duration * pace * Double(fps))
         for index in 0..<total {
             autoreleasepool {
-                let t = Double(index) / Double(fps)
+                let t = Double(index) / Double(fps) / pace
                 guard let image = render(scenes.frame(at: t)), let pool = adaptor.pixelBufferPool else { return }
                 var buffer: CVPixelBuffer?
                 CVPixelBufferPoolCreatePixelBuffer(nil, pool, &buffer)
