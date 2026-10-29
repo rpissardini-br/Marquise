@@ -163,44 +163,45 @@ private struct PromoText {
     let requirement: String
     let files: [String]
 
+    /// As legendas repetem a narração (Promo/narracao.md), para quem assiste sem som.
     static func `for`(_ language: AppLanguage) -> PromoText {
         switch language {
         case .ptBR, .ptPT:
             return PromoText(captions: [
-                Caption(title: "Seu notch pode fazer mais.", subtitle: "Conheça a Marquise."),
-                Caption(title: "Música e controles, direto no notch.", subtitle: "Passe o mouse e a ilha abre."),
-                Caption(title: "Um teleprompter que segue a sua voz.", subtitle: "O texto fica logo abaixo da câmera."),
-                Caption(title: "Invisível para quem assiste.", subtitle: "Fora das gravações e do compartilhamento de tela."),
-                Caption(title: "Um espelho antes da reunião.", subtitle: language == .ptPT ? "Com o MacBook fechado, usa o iPhone." : "Com o MacBook fechado, usa o iPhone."),
-                Caption(title: "Prateleira de arquivos e AirDrop.", subtitle: "Arraste até o notch e solte onde quiser."),
-                Caption(title: "Desinstale apps sem deixar rastro.", subtitle: "Tudo vai para o Lixo. Nada é apagado de vez."),
+                Caption(title: "Seu notch pode fazer muito mais.", subtitle: "Conheça a Marquise."),
+                Caption(title: "Passe o mouse e a ilha abre.", subtitle: "Sua música e os controles, direto no notch."),
+                Caption(title: "Vai gravar ou apresentar?", subtitle: "O teleprompter fica logo abaixo da câmera e acompanha a sua voz."),
+                Caption(title: "E ninguém vê.", subtitle: "Ele some das gravações e das reuniões."),
+                Caption(title: "Antes da chamada, abra o espelho.", subtitle: "Com o MacBook fechado, ele usa o seu iPhone."),
+                Caption(title: "Arraste arquivos até o notch para guardar", subtitle: "ou mande na hora por AirDrop."),
+                Caption(title: "Desinstale apps sem deixar rastro.", subtitle: "Tudo vai para o Lixo."),
             ], youSee: "Você vê", theySee: "Quem assiste vê",
-            tagline: "Grátis e open source para Mac.", requirement: "macOS 14 ou posterior",
+            tagline: "Grátis e open source. Baixe no GitHub.", requirement: "macOS 14 ou posterior",
             files: ["Apresentação.key", "Contrato.pdf", "Viagem.jpg", "Roteiro.txt"])
         case .es:
             return PromoText(captions: [
-                Caption(title: "Tu notch puede hacer más.", subtitle: "Conoce Marquise."),
-                Caption(title: "Música y controles, en el notch.", subtitle: "Pasa el ratón y la isla se abre."),
-                Caption(title: "Un teleprompter que sigue tu voz.", subtitle: "El texto queda justo debajo de la cámara."),
-                Caption(title: "Invisible para quien te ve.", subtitle: "Fuera de las grabaciones y de la pantalla compartida."),
-                Caption(title: "Un espejo antes de la reunión.", subtitle: "Con el MacBook cerrado, usa tu iPhone."),
-                Caption(title: "Bandeja de archivos y AirDrop.", subtitle: "Arrastra al notch y suelta donde quieras."),
-                Caption(title: "Desinstala apps sin dejar rastro.", subtitle: "Todo va a la Papelera. No se borra nada definitivamente."),
+                Caption(title: "Tu notch puede hacer mucho más.", subtitle: "Conoce Marquise."),
+                Caption(title: "Pasa el ratón y la isla se abre.", subtitle: "Tu música y sus controles, en el notch."),
+                Caption(title: "¿Vas a grabar o presentar?", subtitle: "El teleprompter queda justo debajo de la cámara y sigue tu voz."),
+                Caption(title: "Y nadie lo ve.", subtitle: "Desaparece de las grabaciones y las reuniones."),
+                Caption(title: "Antes de la llamada, abre el espejo.", subtitle: "¿Mac cerrado? Usa tu iPhone."),
+                Caption(title: "Arrastra archivos al notch para guardarlos", subtitle: "o envíalos al momento por AirDrop."),
+                Caption(title: "Desinstala apps sin dejar rastro.", subtitle: "Todo va a la Papelera."),
             ], youSee: "Tú ves", theySee: "Lo que ven los demás",
-            tagline: "Gratis y de código abierto para Mac.", requirement: "macOS 14 o posterior",
+            tagline: "Gratis y de código abierto. Descárgala en GitHub.", requirement: "macOS 14 o posterior",
             files: ["Presentación.key", "Contrato.pdf", "Viaje.jpg", "Guion.txt"])
         case .enUS, .enGB:
             let bin = language == .enGB ? "Bin" : "Trash"
             return PromoText(captions: [
-                Caption(title: "Your notch can do more.", subtitle: "Meet Marquise."),
-                Caption(title: "Music and controls, right in the notch.", subtitle: "Hover and the island opens."),
-                Caption(title: "A teleprompter that follows your voice.", subtitle: "The text sits right below the camera."),
-                Caption(title: "Invisible to your audience.", subtitle: "Hidden from recordings and screen sharing."),
-                Caption(title: "A mirror before the meeting.", subtitle: "Lid closed? It uses your iPhone."),
-                Caption(title: "A file shelf, with AirDrop.", subtitle: "Drag to the notch, drop anywhere."),
-                Caption(title: "Uninstall apps, leave nothing behind.", subtitle: "Everything goes to the \(bin). Nothing is deleted for good."),
+                Caption(title: "Your notch can do so much more.", subtitle: "Meet Marquise."),
+                Caption(title: "Hover, and the island opens.", subtitle: "Your music and controls, right in the notch."),
+                Caption(title: "Recording or presenting?", subtitle: "The teleprompter sits right below the camera and follows your voice."),
+                Caption(title: "And nobody sees it.", subtitle: "It stays out of recordings and meetings."),
+                Caption(title: "Before the call, open the mirror.", subtitle: "Lid closed? It uses your iPhone."),
+                Caption(title: "Drag files to the notch to keep them", subtitle: "or send them right away with AirDrop."),
+                Caption(title: "Uninstall apps and leave nothing behind.", subtitle: "Everything goes to the \(bin)."),
             ], youSee: "You see", theySee: "They see",
-            tagline: "Free and open source for Mac.", requirement: "macOS 14 or later",
+            tagline: "Free and open source. Get it on GitHub.", requirement: "macOS 14 or later",
             files: ["Presentation.key", "Contract.pdf", "Trip.jpg", "Script.txt"])
         }
     }
