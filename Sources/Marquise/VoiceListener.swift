@@ -57,9 +57,34 @@ final class VoiceListener {
     private var resultsTask: Task<Void, Never>?
     private var confirmed = ""
     private var generation = 0
+    private var locale: Locale?
+    private var inputObserver: NSObjectProtocol?
+
+    init() {
+        inputObserver = NotificationCenter.default.addObserver(
+            forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
+        ) { [weak self] _ in self?.inputChanged() }
+    }
+
+    deinit {
+        if let inputObserver { NotificationCenter.default.removeObserver(inputObserver) }
+    }
+
+    /// O microfone mudou (AirPods conectados, outra entrada escolhida): o macOS para a captura
+    /// sozinho. Recomeça a escuta na entrada nova, depois de ela se acomodar.
+    private func inputChanged() {
+        guard let locale, analyzer != nil else { return }
+        voiceLog.notice("a entrada de áudio mudou; recomeçando a escuta")
+        let current = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self, current == self.generation else { return }
+            self.start(locale: locale)
+        }
+    }
 
     func start(locale: Locale) {
         stop()
+        self.locale = locale
         generation += 1
         let current = generation
         setupTask = Task { @MainActor [weak self] in

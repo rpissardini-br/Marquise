@@ -55,6 +55,9 @@ uma reunião — e pode se esconder de gravações e compartilhamentos de tela.
 | Rolar no trackpad | Avançar ou voltar no roteiro |
 | <kbd>⌃</kbd><kbd>⌥</kbd><kbd>M</kbd> | Abrir ou fechar o [espelho](#espelho) |
 
+Os atalhos de pausar e de velocidade só existem enquanto o teleprompter está aberto. No resto
+do tempo essas teclas ficam livres para os outros apps.
+
 Passe o mouse sobre o teleprompter para ver os controles: voz ligada ou desligada, play,
 recomeçar, editar e fechar.
 
@@ -105,8 +108,8 @@ apagado de vez.
 
 A busca é conservadora de propósito: só olha pastas conhecidas da Biblioteca, e o item precisa
 ter o identificador exato do app (`com.empresa.app`) ou o nome exato dele. Ficam de fora pastas
-de outros apps da mesma empresa, pastas de fabricante como *Google* ou *Adobe*, apps da Apple e
-a própria Marquise. Se houver outra cópia do app instalada, só o app vem marcado, porque as
+de outros apps da mesma empresa, pastas de fabricante como *Google* ou *Adobe*, os apps que
+vêm com o macOS e a própria Marquise. Se houver outra cópia do app instalada, só o app vem marcado, porque as
 duas cópias usam os mesmos dados. Itens em pastas do sistema aparecem com um cadeado: o Finder
 pode movê-los pedindo a sua senha.
 

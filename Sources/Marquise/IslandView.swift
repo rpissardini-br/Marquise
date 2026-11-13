@@ -266,9 +266,11 @@ struct ProgressRow: View {
         TimelineView(.periodic(from: .now, by: 0.5)) { context in
             let position = track.position(at: context.date)
             let fraction = track.duration > 0 ? position / track.duration : 0
+            // Faixas de uma hora ou mais mostram as horas e precisam de mais espaço.
+            let wide: CGFloat = track.duration >= 3600 ? 14 : 0
             HStack(spacing: 8) {
                 Text(Self.format(position))
-                    .frame(width: 36, alignment: .leading)
+                    .frame(width: 36 + wide, alignment: .leading)
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule().fill(.white.opacity(0.18))
@@ -285,7 +287,7 @@ struct ProgressRow: View {
                 }
                 .frame(height: 12)
                 Text("-" + Self.format(max(track.duration - position, 0)))
-                    .frame(width: 42, alignment: .trailing)
+                    .frame(width: 42 + wide, alignment: .trailing)
             }
             .font(.system(size: 10, weight: .medium).monospacedDigit())
             .foregroundStyle(.white.opacity(0.5))
@@ -294,6 +296,7 @@ struct ProgressRow: View {
 
     static func format(_ seconds: Double) -> String {
         let s = Int(seconds.rounded(.down))
+        if s >= 3600 { return String(format: "%d:%02d:%02d", s / 3600, s / 60 % 60, s % 60) }
         return String(format: "%d:%02d", s / 60, s % 60)
     }
 }

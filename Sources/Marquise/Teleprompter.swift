@@ -11,6 +11,8 @@ let voiceLog = Logger(subsystem: "com.marquise.app", category: "voice")
 /// ou seguir a sua voz, palavra por palavra.
 @Observable final class Teleprompter {
     static let baseSpeed = 40.0  // pontos por segundo = "1,0×"
+    /// De 0,25× a 5×, tanto nos atalhos quanto na janela do roteiro.
+    static let speedRange = 10.0...200.0
     static let glideDuration = 0.45
     /// Desligado no modo `--snapshot` (não pede microfone).
     static var voiceEnabled = true
@@ -212,7 +214,7 @@ let voiceLog = Logger(subsystem: "com.marquise.app", category: "voice")
     func adjustSpeed(by step: Double) {
         anchorOffset = manualOffset(at: Date())
         anchorDate = Date()
-        speed = min(max(speed + step, 10), 200)
+        speed = min(max(speed + step, Self.speedRange.lowerBound), Self.speedRange.upperBound)
     }
 
     private func run() {
@@ -669,7 +671,7 @@ struct PrompterEditorView: View {
             Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
                 GridRow {
                     Text(L(.speed))
-                    Slider(value: Binding(get: { prompter.speed }, set: { prompter.speed = $0 }), in: 10...160)
+                    Slider(value: Binding(get: { prompter.speed }, set: { prompter.speed = $0 }), in: Teleprompter.speedRange)
                     Text(prompter.speedLabel).monospacedDigit().frame(width: 44, alignment: .trailing)
                 }
                 .disabled(prompter.followVoice)

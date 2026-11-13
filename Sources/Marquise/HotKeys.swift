@@ -3,7 +3,8 @@ import Carbon.HIToolbox
 /// Atalhos globais via Carbon (funcionam sem a permissão de Acessibilidade).
 final class HotKeys {
     private var actions: [UInt32: () -> Void] = [:]
-    private var refs: [EventHotKeyRef] = []
+    private var refs: [UInt32: EventHotKeyRef] = [:]
+    private var nextID: UInt32 = 1
     private var handler: EventHandlerRef?
 
     init() {
@@ -21,12 +22,22 @@ final class HotKeys {
     }
 
     /// `modifiers` usa as constantes do Carbon (`controlKey`, `optionKey`…).
-    func register(keyCode: Int, modifiers: Int, action: @escaping () -> Void) {
-        let id = UInt32(actions.count + 1)
+    /// Devolve o número do atalho, para poder soltá-lo depois com `unregister`.
+    @discardableResult
+    func register(keyCode: Int, modifiers: Int, action: @escaping () -> Void) -> UInt32 {
+        let id = nextID
+        nextID += 1
         actions[id] = action
         var ref: EventHotKeyRef?
         let hotKeyID = EventHotKeyID(signature: OSType(0x4D52_5153), id: id)  // 'MRQS'
         RegisterEventHotKey(UInt32(keyCode), UInt32(modifiers), hotKeyID, GetApplicationEventTarget(), 0, &ref)
-        if let ref { refs.append(ref) }
+        if let ref { refs[id] = ref }
+        return id
+    }
+
+    /// Devolve a combinação de teclas aos outros apps.
+    func unregister(_ id: UInt32) {
+        actions[id] = nil
+        if let ref = refs.removeValue(forKey: id) { UnregisterEventHotKey(ref) }
     }
 }

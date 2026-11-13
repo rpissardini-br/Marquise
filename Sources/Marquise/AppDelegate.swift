@@ -38,9 +38,12 @@ final class DropTargetView: NSView {
     var onDropTargetChange: (Bool) -> Void = { _ in }
     var onDropFiles: ([URL]) -> Bool = { _ in false }
 
+    /// Como os arquivos aparecem num arrasto (o segundo é o formato antigo, ainda usado por alguns apps).
+    static let fileTypes: [NSPasteboard.PasteboardType] = [.fileURL, NSPasteboard.PasteboardType("NSFilenamesPboardType")]
+
     override init(frame: NSRect) {
         super.init(frame: frame)
-        registerForDraggedTypes([.fileURL, NSPasteboard.PasteboardType("NSFilenamesPboardType")])
+        registerForDraggedTypes(Self.fileTypes)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) não é usado") }
@@ -94,6 +97,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var editorWindow: NSWindow?
     private var uninstallerWindow: NSWindow?
     private var hotKeys: HotKeys?
+    /// Atalhos que só existem enquanto o teleprompter está aberto.
+    private var prompterKeys: [UInt32] = []
     private var monitors: [Any] = []
     private var openWork: DispatchWorkItem?
     private var closeWork: DispatchWorkItem?
@@ -350,15 +355,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         if !fileDragActive {
             // Um arrasto (de arquivo, texto…) começou quando o "pasteboard de arrasto" muda.
-            // Não depende de ler o conteúdo: o macOS pode restringir essa leitura em segundo plano.
-            // Se não for arquivo, a área de soltar simplesmente não aceita.
             let pasteboard = NSPasteboard(name: .drag)
             guard pasteboard.changeCount != dragChangeCount, !model.shelf.isDraggingOut, !prompter.isActive,
                   !model.mirror.isActive
             else { return }
+            // Só arquivos abrem a área de soltar: texto, imagens de uma página e abas não.
+            // Só olha os tipos, nunca o conteúdo. Se o macOS não informar os tipos, a área abre
+            // como antes e simplesmente não aceita o que não for arquivo.
+            let types = pasteboard.types ?? []
+            if !types.isEmpty, !types.contains(where: DropTargetView.fileTypes.contains) {
+                dragChangeCount = pasteboard.changeCount
+                return
+            }
             fileDragActive = true
-            let types = pasteboard.types?.map(\.rawValue).joined(separator: ",") ?? "ilegível"
-            shelfLog.notice("arrasto detectado; tipos: \(types, privacy: .public)")
+            let names = types.isEmpty ? "ilegível" : types.map(\.rawValue).joined(separator: ",")
+            shelfLog.notice("arrasto detectado; tipos: \(names, privacy: .public)")
         }
         // Depois de aberta, a área só fecha quando o cursor sai das duas zonas (evita piscar na borda).
         let zone = model.shelfDropMode ? model.dropZoneRect.union(model.hitRect) : model.dropZoneRect
@@ -470,6 +481,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         refreshTimer?.invalidate()
         model.isOpen = false
 
+        updatePrompterKeys()
         if prompter.isActive {
             startTracking()
             mouseMoved()
@@ -547,14 +559,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let keys = HotKeys()
         let mods = controlKey | optionKey
         keys.register(keyCode: kVK_ANSI_T, modifiers: mods) { [weak self] in self?.togglePrompter() }
-        keys.register(keyCode: kVK_Space, modifiers: mods) { [weak self] in
-            guard let self, self.prompter.isActive else { return }
-            self.prompter.toggleRunning()
-        }
-        keys.register(keyCode: kVK_UpArrow, modifiers: mods) { [weak self] in self?.prompter.adjustSpeed(by: 10) }
-        keys.register(keyCode: kVK_DownArrow, modifiers: mods) { [weak self] in self?.prompter.adjustSpeed(by: -10) }
         keys.register(keyCode: kVK_ANSI_M, modifiers: mods) { [weak self] in self?.model.mirror.toggle() }
         hotKeys = keys
+    }
+
+    /// Pausar e mudar a velocidade só valem com o teleprompter aberto. Fora dele, ⌃⌥Espaço e
+    /// ⌃⌥↑/↓ ficam livres para os outros apps (os de organizar janelas usam essas teclas).
+    private func updatePrompterKeys() {
+        guard let hotKeys, prompter.isActive == prompterKeys.isEmpty else { return }
+        guard prompter.isActive else {
+            prompterKeys.forEach(hotKeys.unregister)
+            prompterKeys = []
+            return
+        }
+        let mods = controlKey | optionKey
+        prompterKeys = [
+            hotKeys.register(keyCode: kVK_Space, modifiers: mods) { [weak self] in self?.prompter.toggleRunning() },
+            hotKeys.register(keyCode: kVK_UpArrow, modifiers: mods) { [weak self] in self?.prompter.adjustSpeed(by: 10) },
+            hotKeys.register(keyCode: kVK_DownArrow, modifiers: mods) { [weak self] in self?.prompter.adjustSpeed(by: -10) },
+        ]
     }
 
     // MARK: - Menu Editar

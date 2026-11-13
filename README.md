@@ -54,6 +54,9 @@ you look before a meeting — and it can hide itself from screen recordings and 
 | Trackpad scroll | Move forward or back in the script |
 | <kbd>⌃</kbd><kbd>⌥</kbd><kbd>M</kbd> | Open or close the [mirror](#mirror) |
 
+The pause and speed shortcuts exist only while the teleprompter is open. The rest of the
+time those keys stay free for other apps.
+
 Hover over the teleprompter for its controls: voice on or off, play, restart, edit and close.
 
 ### Mirror
@@ -102,8 +105,8 @@ of each, and moves only what you keep checked to the Trash. Nothing is deleted f
 
 The search is deliberately conservative: it only looks in known Library folders, and an item
 must carry the app's exact bundle ID (`com.company.app`) or the app's exact name. It skips
-folders of other apps from the same company, vendor folders like *Google* or *Adobe*, Apple
-apps, and Marquise itself. If another copy of the app is installed, only the app is selected,
+folders of other apps from the same company, vendor folders like *Google* or *Adobe*, the
+apps that come with macOS, and Marquise itself. If another copy of the app is installed, only the app is selected,
 since both copies share the same data. Items in system folders show a lock: Finder can move
 them after asking for your password.
 

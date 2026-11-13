@@ -33,7 +33,7 @@ enum UninstallRefusal: Error, Equatable {
 extension AppBundle {
     static func load(_ url: URL) -> Result<AppBundle, UninstallRefusal> {
         let url = url.standardizedFileURL.resolvingSymlinksInPath()
-        if url.path.hasPrefix("/System/") { return .failure(.appleApp) }
+        if isPartOfMacOS(url) { return .failure(.appleApp) }
         if let outer = url.deletingLastPathComponent().pathComponents.last(where: { $0.hasSuffix(".app") }) {
             return .failure(.insideApp((outer as NSString).deletingPathExtension))
         }
@@ -41,7 +41,6 @@ extension AppBundle {
               let id = info["CFBundleIdentifier"] as? String,
               id.range(of: #"^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$"#, options: .regularExpression) != nil
         else { return .failure(.noBundleID) }
-        if id.lowercased().hasPrefix("com.apple.") { return .failure(.appleApp) }
         if [Bundle.main.bundleIdentifier, "com.marquise.app"].contains(where: { id.caseInsensitiveCompare($0 ?? "") == .orderedSame }) {
             return .failure(.marquise)
         }
@@ -58,6 +57,14 @@ extension AppBundle {
             url: url, name: (info["CFBundleDisplayName"] as? String) ?? fileName, bundleID: id,
             version: info["CFBundleShortVersionString"] as? String,
             executable: info["CFBundleExecutable"] as? String, folderNames: names))
+    }
+
+    /// Os apps que vêm com o macOS ficam nas pastas do sistema ou são protegidos por ele (como o Safari).
+    /// Os outros apps da Apple (Pages, Xcode, Final Cut Pro…) foram instalados por você e podem sair.
+    private static func isPartOfMacOS(_ url: URL) -> Bool {
+        if url.path.hasPrefix("/System/") || url.path.hasPrefix("/Library/Apple/") { return true }
+        var info = stat()
+        return lstat(url.path, &info) == 0 && info.st_flags & UInt32(SF_RESTRICTED) != 0
     }
 }
 
@@ -93,7 +100,8 @@ struct Leftover: Identifiable, Hashable {
 /// - O nome tem que ser o identificador do app (com.empresa.app) ou o nome exato dele; nada de "contém".
 /// - "com.empresa.app.algo" só conta se não for o identificador de outro app instalado
 ///   (com.google.Chrome.canary não é do com.google.Chrome).
-/// - Nomes curtos, de fabricante ("Google", "Adobe") ou iguais aos de outro app não contam.
+/// - Nomes curtos, de fabricante ("Google", "Adobe") ou iguais aos de outro app não contam,
+///   incluídos os apps do macOS (a pasta "Music" é do app Música, não de outro app chamado Music).
 /// - Itens que abrem sozinhos (LaunchAgents) contam pelo identificador ou quando apontam para dentro do app.
 enum LeftoverScanner {
     private static let vendorNames: Set<String> = [
@@ -206,10 +214,12 @@ enum LeftoverScanner {
             .filter { $0 != app.url && !$0.path.contains("/.Trash/") && FileManager.default.fileExists(atPath: $0.path) }
     }
 
-    /// Apps nas pastas de aplicativos (e em uma subpasta delas), com identificador e nomes.
+    /// Apps nas pastas de aplicativos (e em uma subpasta delas) e os do macOS, com identificador e nomes.
     private static func installedApps() -> [(id: String, names: [String])] {
         let fm = FileManager.default
-        var roots = ["/Applications", "/Applications/Utilities", fm.homeDirectoryForCurrentUser.path + "/Applications"]
+        var roots = ["/Applications", "/Applications/Utilities", fm.homeDirectoryForCurrentUser.path + "/Applications",
+                     "/System/Applications", "/System/Applications/Utilities",
+                     "/System/Library/CoreServices", "/System/Library/CoreServices/Applications"]
         var apps: [(String, [String])] = []
         var seen = Set<String>()
         while let root = roots.first {

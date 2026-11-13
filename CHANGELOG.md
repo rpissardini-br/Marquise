@@ -3,6 +3,29 @@
 All notable changes to Marquise are listed here. Versions follow
 [Semantic Versioning](https://semver.org).
 
+## [Unreleased]
+
+### Changed
+- The pause and speed shortcuts (⌃⌥Space, ⌃⌥↑, ⌃⌥↓) are registered only while the
+  teleprompter is open, so they no longer take those keys away from other apps, such as
+  window managers.
+- The uninstaller accepts Apple apps you installed yourself, such as Pages, Keynote and
+  Final Cut Pro. It still refuses the apps that are part of macOS.
+- The speed slider in the script window goes up to 5×, the same limit as the shortcuts.
+
+### Fixed
+- The drop zone opened for any drag near the notch (text, an image from a web page). It now
+  opens only when files are being dragged.
+- The uninstaller could list a folder that belongs to a macOS app when another app had the
+  same name (a third-party app called "Music" matched the Music app's data folder).
+- Voice following stopped when the microphone changed, for example when AirPods connected.
+  Marquise now starts listening again on the new input.
+- The voice status at the top of the teleprompter was cut off ("Preparing voi…"), and the
+  download percentage never showed.
+- "1 items selected" and "1 items were moved to the Trash" in the uninstaller.
+- Tracks longer than an hour showed the time as "61:40" instead of "1:01:40".
+- Two labels were cut off in Portuguese (Portugal).
+
 ## [1.1.1] — 2026-10-28
 
 ### Fixed

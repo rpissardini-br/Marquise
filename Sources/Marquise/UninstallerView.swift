@@ -103,7 +103,8 @@ struct UninstallerView: View {
         let chosen = model.selectedItems
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(L(.selectedSummary, chosen.count, formatBytes(chosen.reduce(0) { $0 + $1.size })))
+                let size = formatBytes(chosen.reduce(0) { $0 + $1.size })
+                Text(chosen.count == 1 ? L(.oneSelected, size) : L(.selectedSummary, chosen.count, size))
                     .font(.callout.weight(.medium))
                 Text(L(.trashNote))
                     .font(.caption)
@@ -131,7 +132,8 @@ struct UninstallerView: View {
             Text(ok ? L(.doneTitle) : L(.partialTitle))
                 .font(.title2.weight(.semibold))
             if !model.removed.isEmpty {
-                Text(L(.doneDetail, model.removed.count, formatBytes(model.removed.reduce(0) { $0 + $1.size })))
+                let size = formatBytes(model.removed.reduce(0) { $0 + $1.size })
+                Text(model.removed.count == 1 ? L(.oneDoneDetail, size) : L(.doneDetail, model.removed.count, size))
                     .foregroundStyle(.secondary)
             }
             if model.needsRestart {
