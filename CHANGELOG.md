@@ -3,7 +3,7 @@
 All notable changes to Marquise are listed here. Versions follow
 [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## [1.1.2] — 2026-11-12
 
 ### Changed
 - The pause and speed shortcuts (⌃⌥Space, ⌃⌥↑, ⌃⌥↓) are registered only while the
